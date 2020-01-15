@@ -2,11 +2,12 @@
 
 exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
-rangeFactor = 0.9;
+rangeFactor = 0.85;
 thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
+plotFaces = True;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -58,6 +59,29 @@ getEdges[vertices_] := Module[
     edges
 ];
 
+getTriangularFaces[vertices_] := Module[
+    {edgeLength, i, j, k},
+    faces = {};
+    edgeLength = 10^10;
+    For[i = 2, i < Length[vertices], i++, 
+        If[ Norm[vertices[[i]] - vertices[[1]]] < edgeLength, edgeLength = Norm[vertices[[i]] - vertices[[1]]]];
+    ];
+
+    For[i = 1, i <= Length[vertices]-2, i++, 
+        For[j = i + 1, j <= Length[vertices]-1, j++, 
+            If[Norm[vertices[[i]] - vertices[[j]]] == edgeLength,
+                For[k = j + 1, k <= Length[vertices], k++,
+                    If[Norm[vertices[[i]] - vertices[[k]]] == edgeLength 
+                        && Norm[vertices[[j]] - vertices[[k]]] == edgeLength,
+                        AppendTo[faces, {i, j, k}];
+                    ];
+                ];   
+            ];
+        ];
+    ];
+    faces
+];
+
 phi = GoldenRatio;
 
 projectionMatrixParameter[theta_] := {
@@ -68,16 +92,11 @@ projectionMatrixParameter[theta_] := {
 
 (* 
 projectionMatrix1 = {
-    {phi, phi, 0, 0, -1, 1},
+    {phi, phi, 0, 0, 1, -1},
     {1, -1, phi, phi, 0, 0},
     {0, 0, 1, -1, phi, phi }
 };
-
-projectionMatrix2 = {
-    {-phi, phi, 0, 0, -1, 1},
-    {-1, -1, phi, -phi, 0, 0},
-    {0, 0, 1,  1, phi, phi }
-}; *)
+*)
 
 (* projectionMatrix = IdentityMatrix[3]; *)
 
@@ -91,8 +110,11 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
     vertices = get321Vertices[True];
     edges = getEdges[vertices];
+    faces = getTriangularFaces[vertices];
 
-    Print["vertex count: " <> IntegerString[Length[vertices]] <> " ; edge count: " <> IntegerString[Length[edges]]] ;
+    Print["vertex count: " <> IntegerString[Length[vertices]] 
+        <> " ; edge count: " <> IntegerString[Length[edges]]
+        <> " ; face count: " <> IntegerString[Length[faces]]];
 
     (* projectionMatrix = projectionMatrix2; *)
     (* projectionMatrix = projectionMatrixParameter[0]; *)
@@ -105,20 +127,30 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
     displayVertices = Map[projectToDirection[#, projectionMatrix]&, vertices];
     displayEdges = Map[displayVertices[[#]]&, edges, {2}];
+    displayFaces = Map[displayVertices[[#]]&, faces, {2}];
 
     range = If[range < 0, Max[Map[N[Norm[#]]&, displayVertices]] * rangeFactor, range];
-    Print[range];
 
-    graph = Graphics3D[
-        {
+    graphElements = {
             {
-                Opacity[1], FaceForm[Lighter[Blue, 0.5]], Map[Cylinder[#, thickness]&, displayEdges]
+                Opacity[1], FaceForm[White], Map[Cylinder[#, thickness]&, displayEdges]
             },
             {
-                Opacity[1], FaceForm[Blue], Map[Sphere[#, thickness * 2]&, displayVertices]
+                Opacity[1], FaceForm[Yellow], Map[Sphere[#, thickness * 2]&, displayVertices]
             }
-        },
-        ViewPoint -> {2, -3, 2}*30,
+        };
+
+    If[plotFaces,
+        AppendTo[graphElements,
+            {
+                Opacity[0.3], FaceForm[Blue], Map[Polygon, displayFaces]
+            }
+        ]
+    ];
+
+    graph = Graphics3D[
+        graphElements,
+        ViewPoint -> {2.6, -3.2, 2.8}*30,
         (* ViewPoint -> {phi, -1, 0} * 1000, *)
         ViewVertical -> {-1, 0, phi},
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
@@ -150,8 +182,8 @@ exportAnimation[frameCount_] := Module[
     },
 
     shape = "e7_321";
-    frameFolder = shape <> "_rotation_frames";
-    gifFileName = shape <> "_rotation";
+    frameFolder = shape <> "_rotation_frames" <> If[plotFaces, "_with_faces", ""];
+    gifFileName = shape <> "_rotation" <> If[plotFaces, "_with_faces", ""];
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -185,6 +217,7 @@ exportAnimation[frameCount_] := Module[
 ];
 
 exportAnimation[48];
+(* exportAnimation[6]; *)
 
 (* exportImage[0, 1, "test"]; *)
 (* exportImage[Pi / 3, 2, "test"]; *)
