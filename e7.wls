@@ -3,7 +3,7 @@
 exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
 rangeFactor = 0.9;
-thickness = 0.15;
+thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
@@ -58,13 +58,13 @@ getEdges[vertices_] := Module[
     edges
 ];
 
+phi = GoldenRatio;
+
 projectionMatrixParameter[theta_] := {
     {phi, phi Cos[theta], 0, 0, -1, 1, phi Sin[theta]},
     {1, - Cos[theta], phi, -phi, 0, 0, - Sin[theta]},
     {0, 0, 1, 1, phi, phi , 0}
 };
-
-phi = GoldenRatio;
 
 projectionMatrix1 = {
     {phi, phi, 0, 0, -1, 1},
@@ -117,8 +117,9 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
                 Opacity[1], FaceForm[Blue], Map[Sphere[#, thickness * 2]&, displayVertices]
             }
         },
-        ViewPoint -> {2, -5, 1}*30,
+        ViewPoint -> {0, -1, 2}*30,
         (* ViewPoint -> {phi, -1, 0} * 1000, *)
+        ViewVertical -> {phi, -1, 0},
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
         Lighting -> lighting
     ];
@@ -183,6 +184,10 @@ exportAnimation[frameCount_] := Module[
 ];
 
 exportAnimation[6];
+
+(* exportImage[0, 1, "test"]; *)
+(* exportImage[2 Pi / 3, 1, "test"]; *)
+(* exportImage[Pi, 1, "test"]; *)
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds"];
