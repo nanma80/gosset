@@ -4,6 +4,9 @@ exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
 rangeFactor = 0.9;
 thickness = 0.15;
+range = -1;
+imageFolder = "output";
+imageSize = {600, 450};
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -55,18 +58,13 @@ getEdges[vertices_] := Module[
     edges
 ];
 
-(* vertices = cubeVertices[3]; *)
-(* vertices = demicubeVertices[6, True]; *)
-(* vertices = orthoplexVertices[6]; *)
-vertices = get321Vertices[True];
+projectionMatrixParameter[theta_] := {
+    {phi, phi Cos[theta], 0, 0, -1, 1, phi Sin[theta]},
+    {1, - Cos[theta], phi, -phi, 0, 0, - Sin[theta]},
+    {0, 0, 1, 1, phi, phi , 0}
+};
 
 phi = GoldenRatio;
-
-edges = getEdges[vertices];
-
-Print["vertex count: " <> IntegerString[Length[vertices]] <> " ; edge count: " <> IntegerString[Length[edges]]] ;
-
-theta = Pi/6;
 
 projectionMatrix1 = {
     {phi, phi, 0, 0, -1, 1},
@@ -80,58 +78,111 @@ projectionMatrix2 = {
     {0, 0, 1,  1, phi, phi }
 };
 
-
-projectionMatrixParameter[theta_] := {
-    {phi Cos[theta] - Sin[theta], phi, 0, 0, -1, 1},
-    {Cos[theta] + phi Sin[theta], -1, phi, -phi, 0, 0},
-    {0, 0, 1,  1, phi, phi }
-};
-
 (* projectionMatrix = IdentityMatrix[3]; *)
 
-(* projectionMatrix = projectionMatrix2; *)
-projectionMatrix = projectionMatrixParameter[0];
-(* projectionMatrix = projectionMatrix1; *)
-Print[projectionMatrix];
+(* vertices = cubeVertices[3]; *)
+(* vertices = demicubeVertices[6, True]; *)
+(* vertices = orthoplexVertices[6]; *)
 
-If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
-    projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
+exportImage[theta_, serialNumber_, frameFolder_] := Module[
+    {vertices, edges, displayVertices, displayEdges, 
+        graph, outputFolder, outputFileName},
 
-displayVertices = Map[projectToDirection[#, projectionMatrix]&, vertices];
-displayEdges = Map[displayVertices[[#]]&, edges, {2}];
+    vertices = get321Vertices[True];
+    edges = getEdges[vertices];
 
-range = Max[Map[N[Norm[#]]&, displayVertices]] * rangeFactor;
+    Print["vertex count: " <> IntegerString[Length[vertices]] <> " ; edge count: " <> IntegerString[Length[edges]]] ;
 
-graph = Graphics3D[
-    {
+    (* projectionMatrix = projectionMatrix2; *)
+    (* projectionMatrix = projectionMatrixParameter[0]; *)
+    (* projectionMatrix = projectionMatrix1; *)
+    projectionMatrix = projectionMatrixParameter[theta];
+    (* Print[projectionMatrix]; *)
+
+    If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
+        projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
+
+    displayVertices = Map[projectToDirection[#, projectionMatrix]&, vertices];
+    displayEdges = Map[displayVertices[[#]]&, edges, {2}];
+
+    range = If[range < 0, Max[Map[N[Norm[#]]&, displayVertices]] * rangeFactor, range];
+    Print[range];
+
+    graph = Graphics3D[
         {
-            Opacity[1], FaceForm[LightBlue], Map[Cylinder[#, thickness]&, displayEdges]
+            {
+                Opacity[1], FaceForm[Lighter[Blue, 0.5]], Map[Cylinder[#, thickness]&, displayEdges]
+            },
+            {
+                Opacity[1], FaceForm[Blue], Map[Sphere[#, thickness * 2]&, displayVertices]
+            }
         },
-        {
-            Opacity[1], FaceForm[Blue], Map[Sphere[#, thickness * 2]&, displayVertices]
-        }
-    },
-    ViewPoint -> {2, -5, 1}*30,
-    (* ViewPoint -> {phi, -1, 0} * 1000, *)
-    PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
-    Lighting -> lighting
-];
+        ViewPoint -> {2, -5, 1}*30,
+        (* ViewPoint -> {phi, -1, 0} * 1000, *)
+        PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
+        Lighting -> lighting
+    ];
 
-outputFolder = "output/";
-outputFileName = outputFolder <> "test.png";
+    outputFolder = FileNameJoin[{imageFolder, frameFolder}];
+    If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
 
-imageSize = {600, 450};
+    outputFileName = "animation_frame_" <> IntegerString[serialNumber, 10, 4] <> ".png";
+    outputFileName = FileNameJoin[{outputFolder, outputFileName}];
+
     cropCommand = "mogrify -crop " <> IntegerString[imageSize[[2]]] <> "x" <> IntegerString[imageSize[[2]]] <> "+" <> IntegerString[(imageSize[[1]]-imageSize[[2]])/2] <> "+0 " <> outputFileName;
 
-If[exportToPov,
-    If[FileExistsQ[outputFileName], DeleteFile[outputFileName]];
-    POVRayRender[graph, Method -> "Triangle", OutputPath -> outputFileName, ImageSize -> imageSize, RenderOptions -> "+A0.001 -J +UA"];
-    Run[cropCommand];
-    ,
-    Export[outputFileName, graph];
+    If[exportToPov,
+        If[FileExistsQ[outputFileName], DeleteFile[outputFileName]];
+        POVRayRender[graph, Method -> "Triangle", OutputPath -> outputFileName, ImageSize -> imageSize, RenderOptions -> "+A0.001 -J +UA"];
+        Run[cropCommand];
+        ,
+        Export[outputFileName, graph];
+    ];
+    Print["Saved the image to " <> outputFileName];
 ];
-Print["Saved the image to " <> outputFileName];
 
+exportAnimation[frameCount_] := Module[
+    {
+        shape, frameFolder, gifFileName, gifFolder, outputFolder, maxTheta,
+        thetaStep, epsilon, thetas, theta, gifCommand
+    },
+
+    shape = "e7_321";
+    frameFolder = shape <> "_rotation_frames";
+    gifFileName = shape <> "_rotation";
+    gifFolder = FileNameJoin[{imageFolder, shape}];
+    outputFolder = FileNameJoin[{imageFolder, frameFolder}];
+    If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
+    If[!DirectoryQ[gifFolder], CreateDirectory[gifFolder]];
+
+    maxTheta = Pi;
+    thetaStep = maxTheta/frameCount;
+
+    epsilon = 0;
+    thetas = Join[
+        Table[epsilon, {k, Floor[frameCount / 6]}], 
+        Table[k, {k, epsilon, maxTheta + epsilon, thetaStep}],
+        Table[maxTheta + epsilon, {k, Floor[frameCount / 6]}]
+    ];
+
+    For[ frameIndex = 1, frameIndex <= Length[thetas] , frameIndex++,
+        Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[thetas]]];
+        theta = thetas[[frameIndex]];
+        Print[theta];
+        exportImage[theta, frameIndex, frameFolder];
+    ];
+
+    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " 
+        <> IntegerString[Floor[150/frameCount]] <> " -dispose 2 " 
+        <> outputFolder <> "\\*animation_frame*.png " 
+        <> gifFolder <> "\\" <> gifFileName <> ".gif";
+
+    Print[gifCommand];
+    Run[gifCommand];
+    Print["Saved the animation to " <> gifFolder <> "\\" <> gifFileName <> ".gif"];
+];
+
+exportAnimation[6];
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds"];

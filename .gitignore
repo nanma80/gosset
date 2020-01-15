@@ -9,6 +9,7 @@ output/*test*.png
 output/*test*/**
 output/*layer*/**
 output/*images*/**
+output/*frames*/**
 
 # temp ignore face_ while tuning
 data/test*.*
