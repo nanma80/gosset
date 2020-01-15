@@ -61,22 +61,23 @@ getEdges[vertices_] := Module[
 phi = GoldenRatio;
 
 projectionMatrixParameter[theta_] := {
-    {phi, phi Cos[theta], 0, 0, -1, 1, phi Sin[theta]},
-    {1, - Cos[theta], phi, -phi, 0, 0, - Sin[theta]},
-    {0, 0, 1, 1, phi, phi , 0}
+    {phi, phi,  0,  0,   1,  - Cos[theta],  - Sin[theta]},
+    {1,   -1,  phi, phi, 0,   0,  0},
+    {0,    0,   1,  -1,  phi, phi Cos[theta], phi Sin[theta]}
 };
 
+(* 
 projectionMatrix1 = {
     {phi, phi, 0, 0, -1, 1},
-    {1, -1, phi, -phi, 0, 0},
-    {0, 0, 1, 1, phi, phi }
+    {1, -1, phi, phi, 0, 0},
+    {0, 0, 1, -1, phi, phi }
 };
 
 projectionMatrix2 = {
     {-phi, phi, 0, 0, -1, 1},
     {-1, -1, phi, -phi, 0, 0},
     {0, 0, 1,  1, phi, phi }
-};
+}; *)
 
 (* projectionMatrix = IdentityMatrix[3]; *)
 
@@ -117,9 +118,9 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
                 Opacity[1], FaceForm[Blue], Map[Sphere[#, thickness * 2]&, displayVertices]
             }
         },
-        ViewPoint -> {0, -1, 2}*30,
+        ViewPoint -> {2, -3, 2}*30,
         (* ViewPoint -> {phi, -1, 0} * 1000, *)
-        ViewVertical -> {phi, -1, 0},
+        ViewVertical -> {-1, 0, phi},
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
         Lighting -> lighting
     ];
@@ -174,7 +175,7 @@ exportAnimation[frameCount_] := Module[
     ];
 
     gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " 
-        <> IntegerString[Floor[150/frameCount]] <> " -dispose 2 " 
+        <> IntegerString[Floor[200/frameCount]] <> " -dispose 2 " 
         <> outputFolder <> "\\*animation_frame*.png " 
         <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
@@ -183,11 +184,11 @@ exportAnimation[frameCount_] := Module[
     Print["Saved the animation to " <> gifFolder <> "\\" <> gifFileName <> ".gif"];
 ];
 
-exportAnimation[6];
+exportAnimation[48];
 
 (* exportImage[0, 1, "test"]; *)
-(* exportImage[2 Pi / 3, 1, "test"]; *)
-(* exportImage[Pi, 1, "test"]; *)
+(* exportImage[Pi / 3, 2, "test"]; *)
+(* exportImage[Pi, 3, "test"]; *)
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds"];
