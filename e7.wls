@@ -7,7 +7,7 @@ thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
-plotFaces = False;
+plotFaces = True;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -180,8 +180,8 @@ exportAnimation[frameCount_] := Module[
     },
 
     shape = "e7_321";
-    frameFolder = shape <> "_rotation_frames" <> If[plotFaces, "_with_faces", ""];
-    gifFileName = shape <> "_rotation" <> If[plotFaces, "_with_faces", ""];
+    frameFolder = shape <> "_rotation3d_frames" <> If[plotFaces, "_with_faces", ""];
+    gifFileName = shape <> "_rotation3d" <> If[plotFaces, "_with_faces", ""];
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -198,7 +198,7 @@ exportAnimation[frameCount_] := Module[
         Table[k, {k, maxTheta + epsilon, 2 maxTheta + epsilon, thetaStep}]
     ];
 
-    maxPhi3d = 2 Pi;
+    maxPhi3d = 2 Pi / 5;
     phi3dStep = maxPhi3d/Length[thetas];
     phi3ds = Table[k, {k, 0, maxPhi3d - phi3dStep, phi3dStep}];
 
