@@ -7,7 +7,7 @@ thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
-plotFaces = True;
+plotFaces = False;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -47,9 +47,6 @@ getEdges[vertices_] := Module[
     For[i = 2, i < Length[vertices], i++, 
         If[ Norm[vertices[[i]] - vertices[[1]]] < edgeLength, edgeLength = Norm[vertices[[i]] - vertices[[1]]]];
     ];
-
-    Print["edge length:"];
-    Print[edgeLength];
 
     For[i = 1, i <= Length[vertices]-1, i++, 
         For[j = i + 1, j <= Length[vertices], j++, 
