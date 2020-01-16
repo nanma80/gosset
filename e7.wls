@@ -101,7 +101,7 @@ projectionMatrix1 = {
 (* vertices = demicubeVertices[6, True]; *)
 (* vertices = orthoplexVertices[6]; *)
 
-exportImage[theta_, serialNumber_, frameFolder_] := Module[
+exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
     {vertices, edges, displayVertices, displayEdges, 
         graph, outputFolder, outputFileName},
 
@@ -122,7 +122,8 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
         projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
 
-    displayVertices = Map[projectToDirection[#, projectionMatrix]&, vertices];
+    displayVertices = Map[projectToDirection[#, RotationMatrix[phi3d, {-1, 0, phi}].projectionMatrix]&, vertices];
+
     displayEdges = Map[displayVertices[[#]]&, edges, {2}];
     displayFaces = Map[displayVertices[[#]]&, faces, {2}];
 
@@ -189,21 +190,29 @@ exportAnimation[frameCount_] := Module[
     maxTheta = Pi;
     thetaStep = maxTheta/frameCount;
 
-    epsilon = 0;
+    epsilon = 0.001;
     thetas = Join[
         Table[epsilon, {k, Floor[frameCount / 6]}], 
         Table[k, {k, epsilon, maxTheta + epsilon, thetaStep}],
-        Table[maxTheta + epsilon, {k, Floor[frameCount / 6]}]
+        Table[maxTheta + epsilon, {k, Floor[frameCount / 6]}],
+        Table[k, {k, maxTheta + epsilon, 2 maxTheta + epsilon, thetaStep}]
     ];
+
+    maxPhi3d = 2 Pi;
+    phi3dStep = maxPhi3d/Length[thetas];
+    phi3ds = Table[k, {k, 0, maxPhi3d - phi3dStep, phi3dStep}];
 
     For[ frameIndex = 1, frameIndex <= Length[thetas] , frameIndex++,
         Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[thetas]]];
         theta = thetas[[frameIndex]];
+        phi3d = phi3ds[[frameIndex]];
         Print[theta];
-        exportImage[theta, frameIndex, frameFolder];
+        Print[phi3d];
+        exportImage[theta, phi3d, frameIndex, frameFolder];
     ];
 
-    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " 
+    (* gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay "  *)
+    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " 
         <> IntegerString[Floor[200/frameCount]] <> " -dispose 2 " 
         <> outputFolder <> "\\*animation_frame*.png " 
         <> gifFolder <> "\\" <> gifFileName <> ".gif";
@@ -216,7 +225,8 @@ exportAnimation[frameCount_] := Module[
 exportAnimation[48];
 (* exportAnimation[6]; *)
 
-(* exportImage[0, 1, "test"]; *)
+(* exportImage[0, 0, 1, "test"]; *)
+(* exportImage[0, Pi/12, 2, "test"]; *)
 (* exportImage[Pi / 3, 2, "test"]; *)
 (* exportImage[Pi, 3, "test"]; *)
 
