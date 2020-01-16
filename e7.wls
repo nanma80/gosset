@@ -7,7 +7,7 @@ thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
-plotFaces = True;
+plotFaces = False;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -113,11 +113,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
         <> " ; edge count: " <> IntegerString[Length[edges]]
         <> " ; face count: " <> IntegerString[Length[faces]]];
 
-    (* projectionMatrix = projectionMatrix2; *)
-    (* projectionMatrix = projectionMatrixParameter[0]; *)
-    (* projectionMatrix = projectionMatrix1; *)
     projectionMatrix = projectionMatrixParameter[theta];
-    (* Print[projectionMatrix]; *)
 
     If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
         projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
@@ -203,16 +199,16 @@ exportAnimation[frameCount_] := Module[
     phi3ds = Table[k, {k, 0, maxPhi3d - phi3dStep, phi3dStep}];
 
     For[ frameIndex = 1, frameIndex <= Length[thetas] , frameIndex++,
-        Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[thetas]]];
         theta = thetas[[frameIndex]];
         phi3d = phi3ds[[frameIndex]];
-        Print[theta];
-        Print[phi3d];
+        Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[thetas]] 
+            <> " ; theta: " <> ToString[theta, InputForm] 
+            <> " ; phi3d: " <> ToString[phi3d, InputForm]];
         exportImage[theta, phi3d, frameIndex, frameFolder];
     ];
 
-    (* gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay "  *)
-    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " 
+    (* gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay "  (* loop back*) *)
+    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " (* no looping back *)
         <> IntegerString[Floor[200/frameCount]] <> " -dispose 2 " 
         <> outputFolder <> "\\*animation_frame*.png " 
         <> gifFolder <> "\\" <> gifFileName <> ".gif";
@@ -222,8 +218,8 @@ exportAnimation[frameCount_] := Module[
     Print["Saved the animation to " <> gifFolder <> "\\" <> gifFileName <> ".gif"];
 ];
 
-exportAnimation[48];
-(* exportAnimation[6]; *)
+(* exportAnimation[48]; *)
+exportAnimation[6];
 
 (* exportImage[0, 0, 1, "test"]; *)
 (* exportImage[0, Pi/12, 2, "test"]; *)
@@ -231,5 +227,4 @@ exportAnimation[48];
 (* exportImage[Pi, 3, "test"]; *)
 
 end = AbsoluteTime[];
-Print["Elapsed time in seconds"];
-Print[end - start];
+Print["Elapsed time in seconds: " <> ToString[end - start]];
