@@ -8,7 +8,6 @@ range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
 plotFaces = False;
-rotationMode = 2;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -82,19 +81,17 @@ getTriangularFaces[vertices_] := Module[
 
 phi = GoldenRatio;
 
-projectionMatrixParameter[theta_, rotationMode_] := 
-If[rotationMode == 1, 
-    {
-        {phi, phi,  0,  0,   1,  - Cos[theta],  - Sin[theta]},
-        {1,   -1,  phi, phi, 0,   0,  0},
-        {0,    0,   1,  -1,  phi, phi Cos[theta], phi Sin[theta]}
-    },
-    {
-        {phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0, 1, -1, 0},
-        {Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta], phi, phi, 0, 0, 0},
-        {0, 0, 1, -1, phi, phi, 0}
-    }];
-
+(* projectionMatrixParameter[theta_] := {
+    {phi, phi,  0,  0,   1,  - Cos[theta],  - Sin[theta]},
+    {1,   -1,  phi, phi, 0,   0,  0},
+    {0,    0,   1,  -1,  phi, phi Cos[theta], phi Sin[theta]}
+};
+ *)
+projectionMatrixParameter6D[theta_] := {
+    {phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0, 1, -1},
+    {Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta], phi, phi, 0, 0},
+    {0, 0, 1, -1, phi, phi }
+};
 
 (* 
 projectionMatrix1 = {
@@ -114,7 +111,9 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
     {vertices, edges, displayVertices, displayEdges, 
         graph, outputFolder, outputFileName},
 
-    vertices = get321Vertices[True];
+    (* vertices = get321Vertices[True]; *)
+    vertices = demicubeVertices[6, True];
+
     edges = getEdges[vertices];
     faces = getTriangularFaces[vertices];
 
@@ -122,7 +121,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
         <> " ; edge count: " <> IntegerString[Length[edges]]
         <> " ; face count: " <> IntegerString[Length[faces]]];
 
-    projectionMatrix = projectionMatrixParameter[theta, rotationMode];
+    projectionMatrix = projectionMatrixParameter6D[theta];
 
     If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
         projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
@@ -132,7 +131,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
     displayEdges = Map[displayVertices[[#]]&, edges, {2}];
     displayFaces = Map[displayVertices[[#]]&, faces, {2}];
 
-    range = If[range < 0, Max[Map[N[Norm[#]]&, displayVertices]] * rangeFactor, range];
+    range = If[range < 0, Max[Map[Norm[N[#]]&, displayVertices]] * rangeFactor, range];
 
     graphElements = {
             {
@@ -142,6 +141,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
                 Opacity[1], FaceForm[Yellow], Map[Sphere[#, thickness * 2]&, displayVertices]
             }
         };
+
 
     If[plotFaces,
         AppendTo[graphElements,
@@ -184,15 +184,15 @@ exportAnimation[frameCount_] := Module[
         thetaStep, epsilon, thetas, theta, gifCommand
     },
 
-    shape = "e7_321";
-    frameFolder = shape <> "_rotation3d_frames" <> If[plotFaces, "_with_faces", ""] <> IntegerString[rotationMode];
-    gifFileName = shape <> "_rotation3d" <> If[plotFaces, "_with_faces", ""] <> IntegerString[rotationMode];
+    shape = "demicube6";
+    frameFolder = shape <> "_rotation3d_frames" <> If[plotFaces, "_with_faces", ""];
+    gifFileName = shape <> "_rotation3d" <> If[plotFaces, "_with_faces", ""];
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
     If[!DirectoryQ[gifFolder], CreateDirectory[gifFolder]];
 
-    maxTheta = If[rotationMode == 1, Pi, Pi/2];
+    maxTheta = Pi / 2;
     thetaStep = maxTheta/frameCount;
 
     epsilon = 0.001;
@@ -228,10 +228,14 @@ exportAnimation[frameCount_] := Module[
 ];
 
 (* exportAnimation[48]; *)
-exportAnimation[6];
+exportAnimation[12];
 
-(* exportImage[0, 0, 1, "test"]; *)
-(* exportImage[0, Pi/12, 2, "test"]; *)
+(* exportImage[0, 0, 1, "test"];
+exportImage[Pi/6, 0, 2, "test"];
+exportImage[Pi/3, 0, 3, "test"];
+exportImage[Pi/2, 0, 4, "test"];
+ *)
+
 (* exportImage[Pi / 3, 2, "test"]; *)
 (* exportImage[Pi, 3, "test"]; *)
 
