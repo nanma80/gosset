@@ -3,6 +3,8 @@ tmp*
 *.tmp
 *.png
 *.gif
+test*
+
 !output/**
 
 output/*test*.png

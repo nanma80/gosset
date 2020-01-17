@@ -7,7 +7,7 @@ thickness = 0.13;
 range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
-plotFaces = False;
+plotFaces = True;
 rotationMode = 2;
 
 start = AbsoluteTime[];
@@ -227,8 +227,8 @@ exportAnimation[frameCount_] := Module[
     Print["Saved the animation to " <> gifFolder <> "\\" <> gifFileName <> ".gif"];
 ];
 
-(* exportAnimation[48]; *)
-exportAnimation[6];
+exportAnimation[48];
+(* exportAnimation[6]; *)
 
 (* exportImage[0, 0, 1, "test"]; *)
 (* exportImage[0, Pi/12, 2, "test"]; *)
