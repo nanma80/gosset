@@ -145,7 +145,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
     If[plotFaces,
         AppendTo[graphElements,
             {
-                Opacity[0.2], FaceForm[Blue], Map[Polygon, displayFaces]
+                Opacity[0.4], FaceForm[Blue], Map[Polygon, displayFaces]
             }
         ]
     ];
@@ -229,11 +229,11 @@ exportAnimation[frameCount_] := Module[
 exportAnimation[48];
 (* exportAnimation[6]; *)
 
-(* exportImage[0, 0, 1, "test"];
-exportImage[Pi/6, 0, 2, "test"];
-exportImage[Pi/3, 0, 3, "test"];
-exportImage[Pi/2, 0, 4, "test"];
- *)
+(* exportImage[0, 0, 1, "test"]; *)
+(* exportImage[Pi/6, 0, 2, "test"]; *)
+(* exportImage[Pi/3, 0, 3, "test"]; *)
+(* exportImage[Pi/2, 0, 4, "test"]; *)
+
 
 (* exportImage[Pi / 3, 2, "test"]; *)
 (* exportImage[Pi, 3, "test"]; *)
