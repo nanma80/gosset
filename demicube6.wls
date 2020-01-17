@@ -8,6 +8,7 @@ range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
 plotFaces = True;
+rotationMode = 3;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -87,11 +88,20 @@ phi = GoldenRatio;
     {0,    0,   1,  -1,  phi, phi Cos[theta], phi Sin[theta]}
 };
  *)
-projectionMatrixParameter6D[theta_] := {
-    {phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0, 1, -1},
-    {Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta], phi, phi, 0, 0},
-    {0, 0, 1, -1, phi, phi }
-};
+
+projectionMatrixParameter6D[theta_, rotationMode_] := 
+If[rotationMode == 2,
+    {
+        {phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0, 1, -1},
+        {Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta], phi, phi, 0, 0},
+        {0, 0, 1, -1, phi, phi }
+    },
+    {
+        {phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0, Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta]},
+        {Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta],    phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]), 0, 0},
+        {0, 0, Cos[theta] - Sin[theta], -Cos[theta]-Sin[theta], phi(Cos[theta] + Sin[theta]), phi (-Sin[theta] + Cos[theta]) }
+    }];
+
 
 (* 
 projectionMatrix1 = {
@@ -120,7 +130,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
         <> " ; edge count: " <> IntegerString[Length[edges]]
         <> " ; face count: " <> IntegerString[Length[faces]]];
 
-    projectionMatrix = projectionMatrixParameter6D[theta];
+    projectionMatrix = projectionMatrixParameter6D[theta, rotationMode];
 
     If[Length[vertices[[1]]] > Length[projectionMatrix[[1]]],
         projectionMatrix = Map[Join[#, Table[0, {k, 1, Length[vertices[[1]]] - Length[projectionMatrix[[1]]]}]]&, projectionMatrix]];
@@ -184,8 +194,8 @@ exportAnimation[frameCount_] := Module[
     },
 
     shape = "demicube6";
-    frameFolder = shape <> "_rotation3d_frames" <> If[plotFaces, "_with_faces", ""];
-    gifFileName = shape <> "_rotation3d" <> If[plotFaces, "_with_faces", ""];
+    frameFolder = shape <> "_rotation3d_frames" <> If[plotFaces, "_with_faces", ""] <> IntegerString[rotationMode];
+    gifFileName = shape <> "_rotation3d" <> If[plotFaces, "_with_faces", ""] <> IntegerString[rotationMode];
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -227,13 +237,13 @@ exportAnimation[frameCount_] := Module[
 ];
 
 exportAnimation[48];
-(* exportAnimation[6]; *)
+(* exportAnimation[12]; *)
 
 (* exportImage[0, 0, 1, "test"]; *)
 (* exportImage[Pi/6, 0, 2, "test"]; *)
 (* exportImage[Pi/3, 0, 3, "test"]; *)
 (* exportImage[Pi/2, 0, 4, "test"]; *)
-
+(* exportImage[Pi/4*3, 0.2, 5, "test"]; *)
 
 (* exportImage[Pi / 3, 2, "test"]; *)
 (* exportImage[Pi, 3, "test"]; *)
