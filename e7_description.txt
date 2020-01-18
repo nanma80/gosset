@@ -3,3 +3,7 @@ Here's the 7D semi-regular polytope 3_{21} with the E7 symmetry projected from 7
 For another solid: 6-demicube, in 6D, the 3D shadow appears similar. I have to choose a different and less graceful way to perform the rotation in 6D so that the shadow changes between the dodecahedron and the icosahedron. Again, the icosahedron shadow of the 6-demicube is the largest shadow achievable.
 
 This blog page https://vzome.com/home/geometry/gossets-polytopes/ shows the projection of 3_{21} with the dodecahedral shadow in vZome. The icosahedral shadow must be constructible using vZome as well.
+
+
+ffmpeg -i demicube6_rotation3d_with_solid_faces3.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" demicube6_rotation3d_with_solid_faces3.mp4
+
