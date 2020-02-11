@@ -8,7 +8,7 @@ range = -1;
 imageFolder = "output";
 imageSize = {600, 450};
 plotFaces = False;
-rotationMode = 3;
+rotationMode = 2;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -144,7 +144,7 @@ exportImage[theta_, phi3d_, serialNumber_, frameFolder_] := Module[
 
     graphElements = {
             {
-                Opacity[1], FaceForm[LightRed], Map[Cylinder[#, thickness]&, displayEdges]
+                Opacity[1], FaceForm[Lighter[Red, 0.1]], Map[Cylinder[#, thickness]&, displayEdges]
             },
             {
                 Opacity[1], FaceForm[Yellow], Map[Sphere[#, thickness * 2]&, displayVertices]
@@ -237,7 +237,7 @@ exportAnimation[frameCount_] := Module[
 ];
 
 exportAnimation[48];
-(* exportAnimation[12]; *)
+(* exportAnimation[3]; *)
 
 (* exportImage[0, 0, 1, "test"]; *)
 (* exportImage[Pi/6, 0, 2, "test"]; *)
