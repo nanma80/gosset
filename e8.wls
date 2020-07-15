@@ -102,12 +102,8 @@ projectionMatrix = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
-
-(* projectionMatrix = IdentityMatrix[3]; *)
-
-(* vertices = cubeVertices[3]; *)
-(* vertices = demicubeVertices[6, True]; *)
-(* vertices = orthoplexVertices[6]; *)
+(* swap coordinates *)
+projectionMatrix = projectionMatrix[[{2, 1, 3, 4}]];
 
 vertices = get421Vertices[True];
 edgeIndices = getEdges[vertices];
@@ -116,6 +112,7 @@ edgeIndices = getEdges[vertices];
 vertices4d = FullSimplify[vertices.Transpose[projectionMatrix]];
 edges4d = Map[vertices4d[[#]]&, edgeIndices];
 
+Print["generated E8 data"];
 
 (*
 In[67]:= FullSimplify[Norm/@vertices4d]//Tally
@@ -129,37 +126,46 @@ Out[85]= {{11.2101, 1200}, {12.3107, 720}, {8.59584, 1440}, {9.98885, 1440}, {6.
 
 *)
 
-refShape = "polytope_3_3_5";
-refShape = "polytope_3_3_52";
-refShape = "polytope_52_5_3";
+refShapes = {
+    "polytope_3_3_5",
+    "polytope_52_5_3",
+    "polytope_3_3_52"
+};
 
-Print[refShape];
+For[shapeIndex = 1, shapeIndex <= Length[refShapes], shapeIndex ++,
+    refShape = refShapes[[shapeIndex]];
 
-refDataFileName = FileNameJoin[{dataFolder, refShape <> ".wl"}];
+    Print[];
+    Print[refShape];
 
-refCells = Get[refDataFileName];
+    refDataFileName = FileNameJoin[{dataFolder, refShape <> ".wl"}];
 
-refFaces = Flatten[refCells, 1];
-refEdges = Union[ Flatten[Map[getEdgesFromFace, refFaces], 1], SameTest -> sameCenter];
-refVertices = Union[ Flatten[refFaces,1], SameTest -> sameVertex];
-Print[Length[refVertices]];
-Print[Length[refEdges]];
+    refCells = Get[refDataFileName];
 
-FullSimplify[Norm/@refVertices]//Tally
+    refFaces = Flatten[refCells, 1];
+    refEdges = Union[ Flatten[Map[getEdgesFromFace, refFaces], 1], SameTest -> sameCenter];
+    refVertices = Union[ Flatten[refFaces,1], SameTest -> sameVertex];
+    Print["Numbers of vertices and edges are:"];
+    Print[Length[refVertices]];
+    Print[Length[refEdges]];
 
-FullSimplify[getLength/@refEdges]//Tally
+(*     FullSimplify[Norm/@refVertices]//Tally;
 
-N[Norm[Total[#]]&/@refEdges]//Tally
-(* {{3.80423, 720}} *)
+    FullSimplify[getLength/@refEdges]//Tally;
 
-factors = {2, 2 * phi};
+    N[Norm[Total[#]]&/@refEdges]//Tally;
+ *)    (* {{3.80423, 720}} *)
 
-For[factorIndex = 1, factorIndex <= 2, factorIndex++,
-    factor = factors[[factorIndex]];
-    Print[factor];
-    Print[Intersection[vertices4d, refVertices * factor//Simplify]//Length];
-    Print[Intersection[refEdges * factor//Simplify, edges4d, SameTest -> sameSet]//Length];
+    factors = {2, 2 * phi};
+
+    For[factorIndex = 1, factorIndex <= 2, factorIndex++,
+        factor = factors[[factorIndex]];
+        Print["factor = " <> ToString[factor]];
+        Print["Overlapping vertex count: " <> IntegerString[Intersection[vertices4d, refVertices * factor//Simplify]//Length]];
+        Print["Overlapping edge count: " <> IntegerString[Intersection[refEdges * factor//Simplify, edges4d, SameTest -> sameSet]//Length]];
+    ];
 ];
+
 
 
 
@@ -167,33 +173,43 @@ end = AbsoluteTime[];
 Print["Elapsed time in seconds: " <> ToString[end - start]];
 
 (* 
+No swap
 
-600-cell:
-"polytope_3_3_5";
-
-2
-120
-0
-1 + Sqrt[5]
+polytope_3_3_5
+Numbers of vertices and edges are:
 120
 720
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 0
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 720
 
-Grand 600-cell:
-"polytope_3_3_52"
-2
-120
-0
-1 + Sqrt[5]
-120
-0
+no swap
 
-Small stellated 120-cell:
-"polytope_52_5_3"
-2
+polytope_52_5_3
+Numbers of vertices and edges are:
 120
 1200
-1 + Sqrt[5]
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 1200
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 1200
+
+swap
+
+polytope_3_3_52
+Numbers of vertices and edges are:
 120
-1200
+720
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 720
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 0
 
  *)
