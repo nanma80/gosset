@@ -8,10 +8,12 @@ refDataFileName = FileNameJoin[{dataFolder, refShape <> ".wl"}];
 exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
 rangeFactor = 0.85;
-thickness = 0.04;
-range = 5;
+thickness = 0.13;
+range = -1;
 imageFolder = "output";
-imageSize = {4, 3} * 240;
+imageSize = {600, 450};
+plotFaces = True;
+rotationMode = 2;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -101,7 +103,7 @@ projectionMatrix = {
 };
 
 (* swap coordinates *)
-(* projectionMatrix = projectionMatrix[[{2, 1, 3, 4}]]; *)
+projectionMatrix = projectionMatrix[[{2, 1, 3, 4}]];
 
 vertices = get421Vertices[True];
 edgeIndices = getEdges[vertices];
@@ -112,70 +114,102 @@ edges4d = Map[vertices4d[[#]]&, edgeIndices];
 
 Print["generated E8 data"];
 
-viewPoint = {1, -1, 1}/Sqrt[3];
-matrix3D = {viewPoint, {0, 1, 0}, {0, 0, 1}};
-perpViewPoints = Orthogonalize[matrix3D][[2;;3]];
+(*
+In[67]:= FullSimplify[Norm/@vertices4d]//Tally
+Out[67]= {{2 (1 + Sqrt[5]), 120}, {4, 120}}
 
-originalProjectionMatrixH4 = {
-    {0.00, 0, 2 Sin[2 Pi/15], (1 + Sqrt[5]) Sin[Pi/15]},
-    {1, -(1 + Sqrt[5]) Sin[Pi/30], 0, 0.00},
-    {1, 3, 4, 1} * 0.0001,
-    {0, 0, 0, 1} * 0.0001
-} * 1.0;
+In[66]:= FullSimplify[getLength/@edges4d]//Tally
+Out[66]= {{2 (1 + Sqrt[5]), 3360}, {4, 3360}}
 
-originalProjectionMatrixF4 = {
-    {1, 1, Sqrt[3] - 1, 0},
-    {1, -1, 0, Sqrt[3] - 1},
-    {1, 3, 4, 1} * 0.0001,
-    {0, 0, 0, 1} * 0.0001
-} * 0.6;
+In[85]:= N[Norm[Total[#]]&/@edges4d]//Tally
+Out[85]= {{11.2101, 1200}, {12.3107, 720}, {8.59584, 1440}, {9.98885, 1440}, {6.9282, 1200}, {4.70228, 720}}
 
+*)
 
-rotation3D = RotationMatrix[{{0, 0, 1}, viewPoint}];
-(* projectionMatrix3d = rotation3D.Orthogonalize[originalProjectionMatrixH4][[1;;3]]; *)
-(* projectionMatrix3d = rotation3D.originalProjectionMatrixH4[[1;;3]]; *)
-projectionMatrix3d = rotation3D.originalProjectionMatrixF4[[1;;3]];
+refShapes = {
+    "polytope_3_3_5",
+    "polytope_52_5_3",
+    "polytope_3_3_52"
+};
 
+For[shapeIndex = 1, shapeIndex <= Length[refShapes], shapeIndex ++,
+    refShape = refShapes[[shapeIndex]];
 
-(* projectionMatrix3d = Orthogonalize[originalProjectionMatrixH4][[1;;3]]; *)
-(* projectionMatrix3d = RotationMatrix[{{0, 0, 1}, {0, 1, phi}}].IdentityMatrix[4][[1;;3]]; *)
-projectTo3d[vertex4d_] := projectionMatrix3d.vertex4d;
+    Print[];
+    Print[refShape];
 
-graph = Graphics3D[
-    {
-        {
-            FaceForm[White], Map[Cylinder[#, thickness]&, Map[projectTo3d, edges4d, {2}]]
-        },
-        {
-            FaceForm[Red], Map[Sphere[#, thickness * 2.5]&, Map[projectTo3d, vertices4d]]
-        }
-    },
+    refDataFileName = FileNameJoin[{dataFolder, refShape <> ".wl"}];
 
-    ViewPoint -> viewPoint * 3000,
-    PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
-    Lighting -> lighting
+    refCells = Get[refDataFileName];
+
+    refFaces = Flatten[refCells, 1];
+    refEdges = Union[ Flatten[Map[getEdgesFromFace, refFaces], 1], SameTest -> sameCenter];
+    refVertices = Union[ Flatten[refFaces,1], SameTest -> sameVertex];
+    Print["Numbers of vertices and edges are:"];
+    Print[Length[refVertices]];
+    Print[Length[refEdges]];
+
+(*     FullSimplify[Norm/@refVertices]//Tally;
+
+    FullSimplify[getLength/@refEdges]//Tally;
+
+    N[Norm[Total[#]]&/@refEdges]//Tally;
+ *)    (* {{3.80423, 720}} *)
+
+    factors = {2, 2 * phi};
+
+    For[factorIndex = 1, factorIndex <= 2, factorIndex++,
+        factor = factors[[factorIndex]];
+        Print["factor = " <> ToString[factor]];
+        Print["Overlapping vertex count: " <> IntegerString[Intersection[vertices4d, refVertices * factor//Simplify]//Length]];
+        Print["Overlapping edge count: " <> IntegerString[Intersection[refEdges * factor//Simplify, edges4d, SameTest -> sameSet]//Length]];
+    ];
 ];
 
-outputFolder = "e8_421";
-outputFolder = FileNameJoin[{imageFolder, outputFolder}];
-If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
 
-(* outputFileName = "e8_421_H4_projection.png"; *)
-outputFileName = "e8_421_F4_projection.png";
-If[exportToPov, outputFileName = "pov_" <> outputFileName ];
-outputFileName = FileNameJoin[{outputFolder, outputFileName}];
 
-cropCommand = "mogrify -crop " <> IntegerString[imageSize[[2]]] <> "x" <> IntegerString[imageSize[[2]]] <> "+" <> IntegerString[(imageSize[[1]]-imageSize[[2]])/2] <> "+0 " <> outputFileName;
-
-If[exportToPov,
-    If[FileExistsQ[outputFileName], DeleteFile[outputFileName]];
-    POVRayRender[graph, Method -> "Triangle", OutputPath -> outputFileName, ImageSize -> imageSize, RenderOptions -> "+A0.001 -J +UA"];
-    Run[cropCommand];
-    Print[cropCommand]
-    ,
-    Export[outputFileName, graph];
-]
-Print["Saved the image to " <> outputFileName];
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds: " <> ToString[end - start]];
+
+(* 
+No swap
+
+polytope_3_3_5
+Numbers of vertices and edges are:
+120
+720
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 0
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 720
+
+no swap
+
+polytope_52_5_3
+Numbers of vertices and edges are:
+120
+1200
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 1200
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 1200
+
+swap
+
+polytope_3_3_52
+Numbers of vertices and edges are:
+120
+720
+factor = 2
+Overlapping vertex count: 120
+Overlapping edge count: 720
+factor = 1 + Sqrt[5]
+Overlapping vertex count: 120
+Overlapping edge count: 0
+
+ *)
