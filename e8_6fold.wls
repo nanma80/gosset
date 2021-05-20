@@ -178,9 +178,7 @@ exportAnimation[] := Module[
     numerators = Join[
         Table[0, {k, Floor[truncateRatioDenominator / 12]}], 
         Table[k, {k, 1, truncateRatioDenominator/2}],
-        Table[truncateRatioDenominator/2, {k, 1, Floor[truncateRatioDenominator / 12]}],
-        Table[k, {k, 1 + truncateRatioDenominator / 12, truncateRatioDenominator}],
-        Table[truncateRatioDenominator, {k, Floor[truncateRatioDenominator / 12]}]
+        Table[truncateRatioDenominator/2, {k, 1, Floor[truncateRatioDenominator / 12]}]
     ];
 
     For[ frameIndex = 1, frameIndex <= Length[numerators] , frameIndex++,
@@ -192,7 +190,7 @@ exportAnimation[] := Module[
         ]
     ];
 
-    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[Floor[400/Length[numerators]]] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[Floor[300/Length[numerators]]] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
