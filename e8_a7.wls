@@ -205,20 +205,24 @@ exportAnimation[] := Module[
     epsilon = 0.001;
     numerators = Join[
         Table[0, {k, Floor[truncateRatioDenominator / 12]}], 
-        Table[k, {k, 1, truncateRatioDenominator/2}],
+        Table[k, {k, 1, Floor[truncateRatioDenominator * (1 - Sqrt[2]/2)]}],
+        Table[truncateRatioDenominator * (1 - Sqrt[2]/2), {k, Floor[truncateRatioDenominator / 18]}],
+        Table[k, {k, Floor[truncateRatioDenominator * (1 - Sqrt[2]/2)] + 1, Floor[truncateRatioDenominator * (Sqrt[2] - 1)]}],
+        Table[truncateRatioDenominator * (Sqrt[2] - 1), {k, Floor[truncateRatioDenominator / 18]}],
+        Table[k, {k, Floor[truncateRatioDenominator * (Sqrt[2] - 1)] + 1, truncateRatioDenominator / 2}],
         Table[truncateRatioDenominator/2, {k, 1, Floor[truncateRatioDenominator / 12]}]
     ];
 
     For[ frameIndex = 1, frameIndex <= Length[numerators] , frameIndex++,
         numerator = numerators[[frameIndex]];
         Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[numerators]] 
-            <> " ; numerator: " <> IntegerString[numerator]];
+            <> " ; numerator: " <> TextString[numerator]];
         If[Mod[frameIndex, 1] == 0,
             exportImage[numerator, frameIndex, frameFolder];
         ]
     ];
 
-    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[Floor[300/Length[numerators]]] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[3] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
@@ -236,9 +240,9 @@ exportAnimation[] := Module[
 ];
 
 exportAnimation[];
-(* exportImage[0, 1, "test"];
-exportImage[30, 2, "test"];
-exportImage[60, 3, "test"];
- *)
+(* exportImage[0, 1, "test"]; *)
+(* exportImage[120 - 60 Sqrt[2], 351, "test"]; *)
+(* exportImage[120 Sqrt[2] - 120, 497, "test"]; *)
+
 end = AbsoluteTime[];
 Print["Elapsed time in seconds: " <> ToString[end - start]];
