@@ -136,7 +136,7 @@ edges3d = Map[vertices3d[[#]]&, edgeIndices];
 maxNorm = Max[Map[Norm, vertices3d]];
 Print[maxNorm//N];
 (* hard code to avoid random scaling across frames *)
-maxNorm = 820; 
+maxNorm = 780; 
 
 
 (* viewPoint = {1, -1, 1}/Sqrt[3]; *)
@@ -161,7 +161,7 @@ exportImage[truncateRatioNumerator_, serialNumber_, frameFolder_] := Module[
     graph = Graphics3D[
         Map[{
             Opacity[1], 
-            FaceForm[Hue[Mod[ #[[2]] - 1 , 5]/5, 1, 1 ]], 
+            FaceForm[Hue[Mod[ #[[2]] - 1 , 11]/11, 1, 1 ]], 
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/3) ]
             }&, verticesTally],
         ViewPoint -> viewPoint * 3000,
@@ -194,9 +194,9 @@ exportAnimation[] := Module[
         thetaStep, epsilon, thetas, theta, gifCommand
     },
 
-    shape = "e8_421_a7";
-    frameFolder = shape <> "_truncate_frames";
-    gifFileName = shape;
+    shape = "e8_421";
+    frameFolder = shape <> "_a7_truncate_frames";
+    gifFileName = shape <> "_a7";
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -213,7 +213,7 @@ exportAnimation[] := Module[
         numerator = numerators[[frameIndex]];
         Print["Frame #" <> IntegerString[frameIndex] <> "/" <> IntegerString[Length[numerators]] 
             <> " ; numerator: " <> IntegerString[numerator]];
-        If[Mod[frameIndex, 20] == 0,
+        If[Mod[frameIndex, 1] == 0,
             exportImage[numerator, frameIndex, frameFolder];
         ]
     ];
