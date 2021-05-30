@@ -6,7 +6,7 @@ refDataFileName = FileNameJoin[{dataFolder, refShape <> ".wl"}];
 
 exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
-rangeFactor = 0.8;
+rangeFactor = 0.78;
 thickness = 0.005;
 range = 3;
 imageFolder = "output";
@@ -112,7 +112,7 @@ exportAnimation[] := Module[
 
     frameIndex = 1;
     For[stepIndex = 1, stepIndex <= 1, stepIndex ++,
-        For[angle = 0, angle <= 15, angle += 1,
+        For[angle = 0, angle <= 180, angle += 1,
             Print["Frame #" <> IntegerString[frameIndex] <> " step: " <> IntegerString[stepIndex] <> " double angle: " <> IntegerString[angle]];
             If[Mod[angle, 1] == 0,
                 exportImage[stepIndex, angle, frameIndex, frameFolder];
@@ -121,7 +121,7 @@ exportAnimation[] := Module[
         ];
     ];
 
-    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[3] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[4] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
