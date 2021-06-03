@@ -79,14 +79,17 @@ projectionMatrix = projectionMatrix * 1.0;
  *)
 
 
-dataFileName = "leech_min_norm_vectors.wl";
+(* dataFileName = "leech_min_norm_vectors.wl";
 minNormVectors = Get[dataFileName];
-
 If[limit > 0,
     sampleIndices = RandomSample[Range[Length[minNormVectors]], limit];
     vertices = minNormVectors[[sampleIndices]],
     vertices = minNormVectors
 ];
+ *)
+
+dataFileName = "data/leech_vertices.wl";
+vertices = Get[dataFileName];
 
 viewPoint = {0, 0, 1};
 
@@ -108,7 +111,7 @@ exportImage[transitionStep_, angle_, serialNumber_, frameFolder_] := Module[
     Print[matrixNorm//N];
     (* Print[matrixNorm//N]; *)
     (* matrix norm is always Sqrt[2] *)
-    maxNorm = 7.4;
+    (* maxNorm = 7.4; *)
 
     projectTo3d[vertex_] := vertex/maxNorm;
     range = rangeFactor;
@@ -118,6 +121,9 @@ exportImage[transitionStep_, angle_, serialNumber_, frameFolder_] := Module[
 
     verticesTally = Tally[Expand[vertices3d]];
     Print["Finished tallying " <> IntegerString[verticesTally//Length]];
+    tallyTally = Tally[Map[#[[2]]&, verticesTally]];
+    Print["Distribution of tally counts:"];
+    Print[Sort[tallyTally]];
 
     graph = Graphics3D[
         Map[{
@@ -192,7 +198,7 @@ exportAnimation[] := Module[
 ];
 
 (* exportAnimation[]; *)
-exportImage[1, 0, 1, "test"];
+exportImage[1, 0, 5, "test"];
 
 
 end = AbsoluteTime[];

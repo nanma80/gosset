@@ -149,22 +149,72 @@ GetAndCacheV2Vertices[testVertices_] := Module[
     verticesV2
 ];
 
-hsVertices = GetHSVertices[];
-newVertex = {0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 0, 2, 0};
-AppendTo[hsVertices, newVertex];
+GetAndCacheV1Vertices[] := Module[
+    {verticesV1, cubeVertices2, i, j, dataFile, template, templates, t, cubeV, newVertex},
+    dataFile = "data/verticesV1.wl";
+    verticesV1 = {};
+    If[FileExistsQ[dataFile], 
+        Print["Reading from from " <> dataFile];
+        verticesV1 = Get[dataFile],
 
-vertices759 = GetAndCache759Vertices[];
-Print[vertices759//Length];
+        Print["Creating V1 vertices"];
+        verticesV1 = {};
+        cubeVertices2 = cubeVertices[2];
+        template = Join[Table[4, {k, 2}], Table[0, {k, 24 - 2}]];
+        templates = Permutations[template];
+        For[i = 1, i<= Length[templates], i++,
+            t = templates[[i]];
+            nonZeroIndices = Select[Table[k, {k, 24}], t[[#]] != 0 &];
+            For[j = 1, j <= Length[cubeVertices2], j++,
+                cubeV = cubeVertices2[[j]];
+                newVertex = Table[0, {k, 24}];
+                newVertex[[nonZeroIndices]] = cubeV * 4;
+                AppendTo[verticesV1, newVertex];
+            ];
+        ];
 
-verticesV3 = GetAndCacheV3Vertices[vertices759];
-Print[verticesV3//Length];
+        Save[dataFile, verticesV1];
+        Print["Saved V1 vertices to " <> dataFile];
+    ];
+    verticesV1
+];
 
-verticesV2 = GetAndCacheV2Vertices[hsVertices];
-Print[verticesV2//Length];
+GetAndCacheAllVertices[] := Module[
+    {vertices759, verticesV1, verticesV2, verticesV3, dataFile, vertices},
+    dataFile = "data/leech_vertices.wl";
+    vertices = {};
+    If[FileExistsQ[dataFile], 
+        Print["Reading from from " <> dataFile];
+        vertices = Get[dataFile],
 
-vertices = Union[hsVertices, verticesV3, verticesV2];
+        Print["Creating all Leech vertices"];
+        
+        hsVertices = GetHSVertices[];
+        newVertex = {0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 0, 2, 0};
+        AppendTo[hsVertices, newVertex];
+
+        vertices759 = GetAndCache759Vertices[];
+        Print[vertices759//Length];
+
+        verticesV3 = GetAndCacheV3Vertices[vertices759];
+        Print[verticesV3//Length];
+
+        verticesV2 = GetAndCacheV2Vertices[hsVertices];
+        Print[verticesV2//Length];
+
+        verticesV1 = GetAndCacheV1Vertices[];
+        Print[verticesV1//Length];
+
+        vertices = Union[hsVertices, verticesV3, verticesV2, verticesV1];
+
+        Save[dataFile, vertices];
+        Print["Saved all Leech vertices to " <> dataFile];
+    ];
+    vertices
+];
+
+vertices = GetAndCacheAllVertices[];
 Print[vertices//Length];
-
 
 
 (* vertices = GetHSVertices[];
