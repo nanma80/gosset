@@ -84,6 +84,10 @@ v2all = Select[minNormVectors, Total[Abs[#]] == 26&];
 Tally[Map[Sort[Tally[#]] &, Abs[v2all]]]
 (* 1^23, 3^1 *)
 
+v2negIndices=Table[ Select[Table[k, {k, 1, 24}], v2all[[i]][[#]]<0 & ], {i, Length[v2all]}];
+Tally[v2negIndices]//Length
+(* 98304. The signs are different across v2all *)
+
 Abs[v3all]//Tally//Length
 (* 759 *)
 Abs[v2all]//Tally//Length
@@ -256,16 +260,19 @@ exportImage[transitionStep_, angle_, serialNumber_, frameFolder_] := Module[
     projectTo3d[vertex_] := vertex/maxNorm;
     range = rangeFactor;
 
-    thicknessRatio = 0.01;
+    thicknessRatio = 0.005;
     thickness = thicknessRatio * range;
 
     verticesTally = Tally[Expand[vertices3d]];
     Print["Finished tallying " <> IntegerString[verticesTally//Length]];
+    tallyTally = Tally[Map[#[[2]]&, verticesTally]];
+    Print["Distribution of tally counts:"];
+    Print[Sort[tallyTally]];
 
     graph = Graphics3D[
         Map[{
             Opacity[1], 
-            FaceForm[Hue[Mod[ #[[2]] - 1 , 13]/13, 1, 1 ]], 
+            FaceForm[Hue[Mod[ #[[2]] - 1 , 5]/5, 1, 1 ]], 
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/8) ]
             }&, verticesTally],
         ViewPoint -> viewPoint * 3000,
