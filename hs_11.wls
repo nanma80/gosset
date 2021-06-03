@@ -186,6 +186,56 @@ GetAndCacheV3Vertices[vertices759_] := Module[
     verticesV3
 ];
 
+
+GetAndCacheV2Vertices[testVertices_] := Module[
+    {verticesV2, cubeVertices8, i, j, dataFile},
+    dataFile = "data/verticesV2.wl";
+    verticesV2 = {};
+    If[FileExistsQ[dataFile], 
+        Print["Reading from from " <> dataFile];
+        verticesV2 = Get[dataFile],
+        Print["Creating V2 vertices"];
+        
+        verticesV2 = {};
+        Print["constructing cubeVertices24"];
+        cubeVertices24 = cubeVertices[24];
+        Print["constructed cubeVertices24: " <> IntegerString[Length[cubeVertices24]]];
+        negCounts = {1, 7, 9, 11, 13, 15, 17, 23};
+        (* {{1, 24}, {7, 6072}, {9, 12144}, {11, 30912}, {13, 30912}, {15, 12144}, {17, 6072}, {23, 24}} *)
+        totals = 24 - 2 * negCounts;
+        selectedCubeVertices24 = Select[cubeVertices24, MemberQ[totals, Total[#]] & ];
+        Print["constructed selectedCubeVertices24: " <> IntegerString[Length[selectedCubeVertices24]]];
+        (* 8.3 million entries *)
+        For[i = 1, i <= 24, i++,
+            Print["i = " <> IntegerString[i]];
+            v2template = Table[1, {k, 24}];
+            v2template[[i]] = 3;
+            For[j = 1, j <= Length[selectedCubeVertices24], j++,
+                If[Mod[j, 100000] == 0, Print[{j, Length[selectedCubeVertices24], Length[verticesV2]}]];
+                cubeV = selectedCubeVertices24[[j]];
+                newVertex = Table[v2template[[k]] * cubeV[[k]], {k, 24}];
+                valid = True;
+                For[l = 1, l <= Length[testVertices], l++,
+                    inner = newVertex.testVertices[[l]];
+                    (* target inner: -32, -16, -8, 0, 8, 16, 32 *)
+                    If[inner < -32 || inner > 32 || Mod[inner, 8] != 0 || Abs[inner] == 24,
+                        valid = False;
+                        Break[];
+                    ];
+                ];
+                If[valid, 
+                    AppendTo[verticesV2, newVertex];
+                ];
+            ];
+        ];
+
+        Save[dataFile, verticesV2];
+        Print["Saved V2 vertices to " <> dataFile];
+    ];
+    verticesV2
+];
+
+
 hsVertices = GetHSVertices[];
 
 vertices759 = GetAndCache759Vertices[];
@@ -194,8 +244,10 @@ Print[vertices759//Length];
 verticesV3 = GetAndCacheV3Vertices[vertices759];
 Print[verticesV3//Length];
 
+verticesV2 = GetAndCacheV3Vertices[hsVertices];
+Print[verticesV2//Length];
 
-vertices = Union[hsVertices, verticesV3];
+vertices = Union[hsVertices, verticesV3, verticesV2];
 Print[vertices//Length];
 
 (* v311 = Select[ vertices, Total[#]==16 &]; *)
@@ -342,7 +394,7 @@ exportAnimation[] := Module[
 ];
 
 (* exportAnimation[]; *)
-exportImage[1, 0, 3, "test"];
+exportImage[1, 0, 4, "test"];
 
 
 end = AbsoluteTime[];

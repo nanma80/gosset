@@ -120,12 +120,12 @@ GetAndCacheV2Vertices[testVertices_] := Module[
         selectedCubeVertices24 = Select[cubeVertices24, MemberQ[totals, Total[#]] & ];
         Print["constructed selectedCubeVertices24: " <> IntegerString[Length[selectedCubeVertices24]]];
         (* 8.3 million entries *)
-        For[i = 1, i <= 4, i++,
+        For[i = 1, i <= 24, i++,
             Print["i = " <> IntegerString[i]];
             v2template = Table[1, {k, 24}];
             v2template[[i]] = 3;
-            For[j = 1, j <=100000 && j <= Length[selectedCubeVertices24], j++,
-                If[Mod[j, 100000] == 0, Print[{j, Length[selectedCubeVertices24]}]];
+            For[j = 1, j <= Length[selectedCubeVertices24], j++,
+                If[Mod[j, 100000] == 0, Print[{j, Length[selectedCubeVertices24], Length[verticesV2]}]];
                 cubeV = selectedCubeVertices24[[j]];
                 newVertex = Table[v2template[[k]] * cubeV[[k]], {k, 24}];
                 valid = True;
