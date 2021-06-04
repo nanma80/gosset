@@ -13,14 +13,16 @@ imageSize = {4, 3} * 240;
 roundPrecision = 0.000001;
 maxZoom = 1.0;
 minZoom = 0.02;
-frameCount = 10;
+frameCount = 180;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
 ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pvengine64.exe"];
 
 vertices = Get[dataFileName];
-viewPoint = {0, 0, 1};
+(* viewPoint = {0, 0, 1}; *)
+viewPoint = {1, -1, 1}/Sqrt[3];
+rotation = RotationMatrix[{{0, 0, 1}, viewPoint}];
 
 getProjectionMatrix[t_] := Module[
     {projectionMatrix, i, j, renormer, elevenCycle},
@@ -115,7 +117,7 @@ exportAnimation[] := Module[
         ];
     ];
 
-    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[30] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -duplicate 1,-2-1 -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[3] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
@@ -134,7 +136,7 @@ exportAnimation[] := Module[
 
 projectionMatrix = getProjectionMatrix[0] * 1.0;
 
-vertices3d = vertices.Transpose[projectionMatrix];
+vertices3d = vertices.Transpose[projectionMatrix].Transpose[rotation];
 matrixNorm = Norm[projectionMatrix[[1]]];
 
 maxNorm = Max[Map[Norm, vertices3d]];
@@ -154,12 +156,12 @@ Print["Distribution of tally counts:"];
 Print[Sort[tallyTally]];
 
 
-exportAnimation[];
+(* exportAnimation[]; *)
 
-(* exportImage[0.5, 11, "test"];
-exportImage[0.1, 12, "test"];
-exportImage[0.03, 13, "test"];
- *)
+exportImage[0.5, 10, "test"];
+(* exportImage[0.1, 12, "test"]; *)
+(* exportImage[0.03, 13, "test"]; *)
+
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds: " <> ToString[end - start]];
