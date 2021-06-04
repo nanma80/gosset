@@ -17,6 +17,8 @@ output/*frames*/**
 data/test*.*
 # output/*.gif
 
+# too large
+output/leech/leech_11_zoomed.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

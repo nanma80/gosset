@@ -7,11 +7,10 @@ dataFileName = FileNameJoin[{dataFolder, shape <> ".wl"}];
 exportToPov = True;
 lighting = {{"Point", White, {10, -10, 10}}};
 rangeFactor = 0.78;
-thicknessRatio = 0.005;
+thicknessRatio = 0.003;
 imageFolder = "output";
 imageSize = {4, 3} * 240;
 roundPrecision = 0.000001;
-zoomed = True;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -41,19 +40,19 @@ getProjectionMatrix[t_] := Module[
         ];
 
         If[elevenCycle[[i + 1]][[1]] == 1,
-            projectionMatrix[[1]][[i+1]] = Cos[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11 + t)]/renormer;
-            projectionMatrix[[2]][[i+1]] = -Sin[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11 + t)]/renormer
+            projectionMatrix[[1]][[i+1]] = Cos[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11) + t]/renormer;
+            projectionMatrix[[2]][[i+1]] = -Sin[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11) + t]/renormer
         ];
 
         If[elevenCycle[[i + 1]][[1]] == 2,
-            projectionMatrix[[1]][[i+1]] = Cos[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11 - t)]/renormer;
-            projectionMatrix[[2]][[i+1]] = -Sin[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11 - t)]/renormer
+            projectionMatrix[[1]][[i+1]] = Cos[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11) - t]/renormer;
+            projectionMatrix[[2]][[i+1]] = -Sin[2 * Pi * (elevenCycle[[i + 1]][[2]] / 11) - t]/renormer
         ];
     ];
     projectionMatrix
 ];
 
-exportImage[angle_, serialNumber_, frameFolder_] := Module[
+exportImage[angle_, serialNumber_, frameFolder_, zoomed_] := Module[
     {verticesOnEdges, verticesTally, cropCommand,
         graph, outputFolder, outputFileName},
 
@@ -112,7 +111,7 @@ exportImage[angle_, serialNumber_, frameFolder_] := Module[
     Print["Saved the image to " <> outputFileName];
 ];
 
-exportAnimation[] := Module[
+exportAnimation[zoomed_] := Module[
     {
         shape, frameFolder, gifFileName, gifFolder, outputFolder, maxTheta,
         thetaStep, epsilon, thetas, theta, gifCommand
@@ -130,13 +129,13 @@ exportAnimation[] := Module[
     frameIndex = 1;
     For[angle = 0, angle <= 360, angle += 1,
         Print["Frame #" <> IntegerString[frameIndex] <> "  angle: " <> IntegerString[angle]];
-        If[Mod[angle, 180] == 0,
-            exportImage[angle, frameIndex, frameFolder];
+        If[Mod[angle, 1] == 0,
+            exportImage[angle, frameIndex, frameFolder, zoomed];
             frameIndex ++;
         ];
     ];
 
-    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[4] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[3] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
@@ -153,11 +152,13 @@ exportAnimation[] := Module[
     Print["Saved the video to " <> gifFolder <> "\\" <> gifFileName <> ".mp4"];
 ];
 
-exportAnimation[];
-(* exportImage[0, 7, "test"];
-exportImage[30, 8, "test"];
-exportImage[60, 9, "test"];
-exportImage[90, 10, "test"];
+exportAnimation[True];
+exportAnimation[False];
+
+(* exportImage[0, 7, "test", True];
+exportImage[30, 8, "test", False];
+exportImage[60, 9, "test", True];
+exportImage[90, 10, "test", False];
  *)
 
 end = AbsoluteTime[];
