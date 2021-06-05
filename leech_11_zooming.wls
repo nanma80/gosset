@@ -107,7 +107,8 @@ exportAnimation[] := Module[
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
     If[!DirectoryQ[gifFolder], CreateDirectory[gifFolder]];
 
-    zoomFactors = Table[(maxZoom - minZoom)/2 Cos[t] + (maxZoom + minZoom)/2, {t, 0, Pi, Pi/(frameCount - 1)}];
+    (* zoomFactors = Table[(maxZoom - minZoom)/2 Cos[t] + (maxZoom + minZoom)/2, {t, 0, Pi, Pi/(frameCount - 1)}]; *)
+    zoomFactors = Table[Exp[(Log[maxZoom] - Log[minZoom])/2 Cos[t] + (Log[maxZoom] + Log[minZoom])/2], {t, 0, Pi, Pi/(frameCount - 1)}];
 
     For[frameIndex = 1, frameIndex <= Length[zoomFactors], frameIndex ++,
         zoomFactor = zoomFactors[[frameIndex]];
@@ -156,9 +157,9 @@ Print["Distribution of tally counts:"];
 Print[Sort[tallyTally]];
 
 
-(* exportAnimation[]; *)
+exportAnimation[];
 
-exportImage[0.5, 10, "test"];
+(* exportImage[0.5, 10, "test"]; *)
 (* exportImage[0.1, 12, "test"]; *)
 (* exportImage[0.03, 13, "test"]; *)
 
