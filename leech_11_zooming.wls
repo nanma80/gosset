@@ -5,11 +5,10 @@ shape = "leech_vertices";
 dataFileName = FileNameJoin[{dataFolder, shape <> ".wl"}];
 
 exportToPov = True;
-lighting = {{"Point", White, {10, -10, 10}}};
 rangeFactor = 0.78;
-thicknessRatio = 0.003;
+thicknessRatio = 0.003/3;
 imageFolder = "output";
-imageSize = {4, 3} * 240;
+imageSize = {4, 3} * 240 * 3;
 roundPrecision = 0.000001;
 maxZoom = 1.0;
 minZoom = 0.02;
@@ -23,6 +22,7 @@ vertices = Get[dataFileName];
 (* viewPoint = {0, 0, 1}; *)
 viewPoint = {1, -1, 1}/Sqrt[3];
 rotation = RotationMatrix[{{0, 0, 1}, viewPoint}];
+lighting = {{"Point", White, viewPoint * 10}};
 
 getProjectionMatrix[t_] := Module[
     {projectionMatrix, i, j, renormer, elevenCycle},
@@ -72,13 +72,14 @@ exportImage[zoom_, serialNumber_, frameFolder_] := Module[
             }&, verticesTally],
         ViewPoint -> viewPoint * 3000,
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
-        Lighting -> lighting
+        Lighting -> lighting,
+        Boxed -> False
     ];
 
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
 
-    outputFileName = "animation_frame_" <> IntegerString[serialNumber, 10, 4] <> ".png";
+    outputFileName = "animation_frame_" <> IntegerString[serialNumber, 10, 4] <> If[exportToPov, ".png", ".svg"];
     outputFileName = FileNameJoin[{outputFolder, outputFileName}];
 
     cropCommand = "mogrify -crop " <> IntegerString[imageSize[[2]]] <> "x" <> IntegerString[imageSize[[2]]] <> "+" <> IntegerString[(imageSize[[1]]-imageSize[[2]])/2] <> "+0 " <> outputFileName;
@@ -89,7 +90,7 @@ exportImage[zoom_, serialNumber_, frameFolder_] := Module[
         Run[cropCommand];
         Print[cropCommand]
         ,
-        Export[outputFileName, graph];
+        Export[outputFileName, graph, ImageSize -> imageSize[[2]]];
     ]
     Print["Saved the image to " <> outputFileName];
 ];
@@ -157,9 +158,9 @@ Print["Distribution of tally counts:"];
 Print[Sort[tallyTally]];
 
 
-exportAnimation[];
+(* exportAnimation[]; *)
 
-(* exportImage[0.5, 10, "test"]; *)
+exportImage[1.0, 14, "test"];
 (* exportImage[0.1, 12, "test"]; *)
 (* exportImage[0.03, 13, "test"]; *)
 
