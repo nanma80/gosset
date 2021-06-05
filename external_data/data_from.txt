@@ -1,1 +1,27 @@
+minvects.csv:
+
 https://github.com/kenzkallal/Kissing-Numbers/blob/master/minvects.txt
+
+The following files are from Gro-Tsen on Twitter. See
+
+https://twitter.com/gro_tsen/status/1401265982715449347?s=20
+and the whole thread.
+
+http://www.madore.org/~david/math/leech-lattice-first-shell.dat
+leech-lattice-first-shell.dat
+
+https://gist.github.com/Gro-Tsen/b1f13f09528432738b8a57e5748ec81a
+leech-projections.dat
+
+http://www.madore.org/~david/math/co0-representative-matrices.dat
+co0-representative-matrices.dat
+
+http://www.madore.org/~david/math/e8-first-shells.dat
+e8-first-shells.dat
+
+https://gist.github.com/Gro-Tsen/f5ad61018e73ff4f9962e3387c79eb0f
+e8-projections.dat
+
+http://www.madore.org/~david/math/we8-representative-matrices.dat
+we8-representative-matrices.dat
+
