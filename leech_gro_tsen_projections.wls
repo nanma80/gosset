@@ -41,7 +41,6 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
     
     roundedVertices3d = Round[vertices3d, roundPrecision];
     verticesTally = Tally[Expand[roundedVertices3d]];
-    (* verticesTally = Tally[Expand[vertices3d]]; *)
     Print["Finished tallying " <> IntegerString[verticesTally//Length]];
     tallyTally = Sort[Tally[Map[#[[2]]&, verticesTally]]];
     Print["Distribution of tally counts:"];
@@ -53,7 +52,7 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
         Map[{
             Opacity[1], 
             FaceForm[Hue[Mod[ #[[2]] - 1 , colorCount]/colorCount, 1, 1 ]], 
-            Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/3) ]
+            Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/4) ]
             }&, verticesTally],
         ViewPoint -> viewPoint * 3000,
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
