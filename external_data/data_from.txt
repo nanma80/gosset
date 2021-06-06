@@ -1,6 +1,7 @@
 minvects.csv:
 
 https://github.com/kenzkallal/Kissing-Numbers/blob/master/minvects.txt
+leech_min_norm_vectors.wl has the same content. Saved to .wl
 
 The following files are from Gro-Tsen on Twitter. See
 
