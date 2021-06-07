@@ -19,6 +19,7 @@ data/test*.*
 
 # too large
 output/leech/leech_11_zoomed.*
+output/leech/gro_tsen_projections_test_color_scheme/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -45,13 +45,18 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
     tallyTally = Sort[Tally[Map[#[[2]]&, verticesTally]]];
     Print["Distribution of tally counts:"];
     Print[tallyTally];
-    colorCount = Max[13, Length[tallyTally]];
+    colorMap = <||>;
+    colorCount = Length[tallyTally];
     Print[colorCount];
+    For[colorIndex = 1, colorIndex <= Length[tallyTally], colorIndex ++,
+        multiplicity = tallyTally[[colorIndex]][[1]];
+        colorMap[multiplicity] = Hue[Mod[colorIndex - 1 , colorCount]/colorCount, 1, 1 ];
+    ];
 
     graph = Graphics3D[
         Map[{
             Opacity[1], 
-            FaceForm[Hue[Mod[ #[[2]] - 1 , colorCount]/colorCount, 1, 1 ]], 
+            FaceForm[colorMap[#[[2]]]], 
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/4) ]
             }&, verticesTally],
         ViewPoint -> viewPoint * 3000,
