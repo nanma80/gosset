@@ -37,6 +37,21 @@ orthoplexVertices[dimension_] := Module[
 ];
 demicubeVertices[dimension_, altMode_] := Select[cubeVertices[dimension], Mod[Total[#] + 8, 4] == Mod[If[altMode, 0, 2] + dimension, 4] &];
 
+getEdges[vertices_] := Module[
+    {edgeLength, i, j},
+    edges = {};
+    edgeLength = 10^10;
+    For[i = 2, i < Length[vertices], i++, 
+        If[ Norm[vertices[[i]] - vertices[[1]]] < edgeLength, edgeLength = Norm[vertices[[i]] - vertices[[1]]]];
+    ];
+
+    For[i = 1, i <= Length[vertices]-1, i++, 
+        For[j = i + 1, j <= Length[vertices], j++, 
+            If[ Norm[vertices[[i]] - vertices[[j]]] == edgeLength, AppendTo[edges, {i, j}] ];   
+        ];
+    ];
+    edges
+];
 
 get421Vertices[altMode_] := Module[
     {vertices},
@@ -52,6 +67,8 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
         graph},
 
     vertices3d = vertices.Transpose[projectionMatrix * 1.0].Transpose[rotation];
+    edges3d = Map[vertices3d[[#]]&, edgeIndices];
+
     matrixNorm = Norm[projectionMatrix[[1]]];
 
     maxNorm = Max[Map[Norm, vertices3d]];
@@ -80,11 +97,17 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
     ];
 
     graph = Graphics3D[
-        Map[{
+        {
+            Map[{
             Opacity[1], 
             FaceForm[colorMap[#[[2]]]], 
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/4) ]
             }&, verticesTally],
+            {
+                FaceForm[Darker[Purple, 0.999]], Map[Cylinder[#, thickness/6]&, Map[projectTo3d, edges3d, {2}]]
+            }
+        },
+
         ViewPoint -> viewPoint * 3000,
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
         Lighting -> lighting
@@ -104,6 +127,7 @@ exportImage[outputFileName_, projectionMatrix_] := Module[
 ];
 
 vertices = get421Vertices[True];
+edgeIndices = getEdges[vertices];
 
 projections = Get["external_data/e8-projections.wl"];
 For[i = 1, i <= limit && i <= Length[projections] , i++,
