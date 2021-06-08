@@ -1,5 +1,18 @@
 #!/usr/bin/env wolframscript
 
+cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
+
+demicubeVertices[dimension_, altMode_] := Select[cubeVertices[dimension], Mod[Total[#] + 8, 4] == Mod[If[altMode, 0, 2] + dimension, 4] &];
+
+get421Vertices[altMode_] := Module[
+    {vertices},
+    vertices = {};
+    vertices = Join[vertices, Union[Flatten[Permutations/@Map[Join[#, {0, 0, 0, 0, 0, 0}]& , cubeVertices[2] * 2], 1]]];
+    vertices = Join[vertices, demicubeVertices[8, altMode]];
+    vertices
+];
+
+
 vertices = Get["data/leech_vertices.wl"];
 Print[Length[vertices]];
 
@@ -15,3 +28,37 @@ Print[Length[comp1]];
 comp2 = Complement[vGroTsen, vertices];
 Print[Length[comp2]];
 
+pm = ArrayFlatten[{{IdentityMatrix[8], IdentityMatrix[8] * 0, IdentityMatrix[8] * 0}}];
+v8 = vGroTsen.Transpose[pm];
+v8 = Union[v8];
+(* 2641 points *)
+
+norms = Map[Norm, v8];
+
+(* Tally of norms: {{4 Sqrt[2], 240}, {4, 2160}, {2 Sqrt[2], 240}, {0, 1}} *)
+
+shell1Points = Select[v8, Norm[#]==4 Sqrt[2] &];
+vertices421 = get421Vertices[True];
+Tally[Map[Sort[#] &, Abs[shell1Points]]]
+(* {{{0, 0, 0, 0, 0, 0, 4, 4}, 112}, {{2, 2, 2, 2, 2, 2, 2, 2}, 128}} *)
+
+Map[Length, {shell1Points, vertices421 * 2, Intersection[shell1Points, vertices421 * 2]}]
+(* all 240. these two sets are the same 
+shell1 is twice 421
+*)
+
+shell2Points = Select[v8, Norm[#]==4 &];
+(* 2160 *)
+
+Tally[Map[Sort[#] &, Abs[shell2Points]]]
+(* {{{0, 0, 0, 0, 0, 0, 0, 4}, 16}, {{1, 1, 1, 1, 1, 1, 1, 3}, 1024}, {{0, 0, 0, 0, 2, 2, 2, 2}, 1120}} *)
+(* key question. Is the inradius of 421 less than 1/sqrt[2] times the circumradius? *)
+
+shell3Points = Select[v8, Norm[#]==2 Sqrt[2] &];
+(* 240, another copy of 421 polytope *)
+
+Tally[Map[Sort[#] &, Abs[shell3Points]]]
+(* {{{0, 0, 0, 0, 0, 0, 2, 2}, 112}, {{1, 1, 1, 1, 1, 1, 1, 1}, 128}} *)
+
+Map[Length, {shell3Points, vertices421, Intersection[shell3Points, vertices421]}]
+(* all 240, shell3 is just 421 *)
