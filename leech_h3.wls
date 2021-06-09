@@ -86,6 +86,7 @@ from numeric and symbolic tally:
             }&, verticesTally],
         (* ViewPoint -> viewPoint * 3000, *)
         ViewPoint -> {1, -1, Sqrt[7 - 3*Sqrt[5]]/2} * 5,
+        (* ViewPoint -> {0, -0, 1} * 5, *)
         ViewVertical -> {0, 0, 1},
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
         Lighting -> lighting
@@ -159,7 +160,7 @@ exportImage[Pi/180 * 2, 103, "test"];
 exportImage[Pi/180 * 3, 104, "test"];
 exportImage[Pi/180 * 4, 105, "test"];
  *)
- (* exportImage[Pi/180 * 45, 106, "test"]; *)
+(* exportImage[Pi/180 * 45, 106, "test"]; *)
 
 
 
