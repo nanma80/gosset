@@ -5,11 +5,10 @@ shape = "leech_vertices";
 dataFileName = FileNameJoin[{dataFolder, shape <> ".wl"}];
 
 exportToPov = True;
-rangeFactor = 0.78;
-thicknessRatio = 0.01;
+rangeFactor = 0.75;
+thicknessRatio = 0.007;
 imageSize = {4, 3} * 240;
 roundPrecision = 0.000001;
-limit = 1000;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -42,9 +41,9 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
     maxNorm = Max[Map[Norm, vertices3d]];
     Print[{maxNorm, matrixNorm}//N];
-    maxNorm = 6;
+    (* maxNorm = 6; *)
 
-    projectTo3d[vertex_] := vertex/maxNorm/matrixNorm;
+    projectTo3d[vertex_] := vertex/maxNorm;
     range = rangeFactor;
 
     thickness = thicknessRatio * range;
@@ -86,7 +85,7 @@ from numeric and symbolic tally:
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/4) ]
             }&, verticesTally],
         (* ViewPoint -> viewPoint * 3000, *)
-        ViewPoint -> {1, -1, 1/3} * 5,
+        ViewPoint -> {1, -1, Sqrt[7 - 3*Sqrt[5]]/2} * 5,
         ViewVertical -> {0, 0, 1},
         PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
         Lighting -> lighting
@@ -118,7 +117,7 @@ exportAnimation[] := Module[
     },
 
     shape = "leech";
-    frameFolder = shape <> "_h3_truncate_frames";
+    frameFolder = shape <> "_h3_frames";
     gifFileName = shape <> "_h3";
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
@@ -127,15 +126,15 @@ exportAnimation[] := Module[
 
     frameIndex = 1;
     angleStep = 1;
-    For[angle = 0, angle <= 72, angle += angleStep,
+    For[angle = 0, angle <= 72 - angleStep, angle += angleStep,
         Print["Frame #" <> IntegerString[frameIndex] <> " angle: " <> TextString[angle]];
         If[Mod[angle, 1] == 0,
-            exportImage[angle, frameIndex, frameFolder];
-            frameIndex ++;
+            exportImage[angle / 180 * Pi, frameIndex, frameFolder];
         ];
+        frameIndex ++;
     ];
 
-    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[4] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
+    gifCommand = "magick convert -quiet +repage -alpha remove -loop 0 -delay " <> IntegerString[3] <> " -dispose 2 " <> outputFolder <> "\\*animation*.png " <> gifFolder <> "\\" <> gifFileName <> ".gif";
 
     Print[gifCommand];
     Run[gifCommand];
@@ -152,11 +151,17 @@ exportAnimation[] := Module[
     Print["Saved the video to " <> gifFolder <> "\\" <> gifFileName <> ".mp4"];
 ];
 
-outputFileName = "output/leech/h3/h3_projection.png";
+exportAnimation[];
 
-exportImage[0, 101, "test"];
-exportImage[Pi/180 * 5, 102, "test"];
-exportImage[Pi/180 * 10, 103, "test"];
+(* exportImage[0, 101, "test"];
+exportImage[Pi/180 * 1, 102, "test"];
+exportImage[Pi/180 * 2, 103, "test"];
+exportImage[Pi/180 * 3, 104, "test"];
+exportImage[Pi/180 * 4, 105, "test"];
+ *)
+ (* exportImage[Pi/180 * 45, 106, "test"]; *)
+
+
 
 end = AbsoluteTime[];
 Print["Elapsed time in seconds: " <> ToString[end - start]];
