@@ -66,11 +66,18 @@ Print[innerProducts];
 
 targetInner = 16;
 randomVec = RandomReal[1, 8];
-limit = 10000;
-
+randomVec = {0.175617, 0.50903, 0.0276916, 0.475733, 0.467449, 0.405671, 0.0302902, 0.45968};
+limit = Length[vertices];
+startTime = AbsoluteTime[];
 edges8dMap = <||>;
 For[i = 1, i<=limit && i <= Length[vertices]-1, i++, 
-    If[Mod[i, 100]==0, Print[{i, limit, Length[edges8dMap]}]];
+    If[Mod[i, 100] == 0,
+        Print[{i, 
+            limit, 
+            Length[edges8dMap], 
+            Round[AbsoluteTime[] - startTime]
+            }]
+    ];
     For[j = i + 1, j <= limit && j <= Length[vertices], j++, 
         If[vertices[[i]].vertices[[j]] == targetInner, 
             edge8d = { vertices[[i]].tpm, vertices[[j]].tpm };
