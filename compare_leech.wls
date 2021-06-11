@@ -102,3 +102,34 @@ Tally[Map[Sort[#] &, Abs[shell3Points]]]
 
 Map[Length, {shell3Points, vertices421, Intersection[shell3Points, vertices421]}]
 (* all 240, shell3 is just 421 *)
+
+
+edges8dMap = Get["data/leech_8d_edges.wl"];
+unique8dEdges = Keys[edges8dMap];
+(* 619081 *)
+
+phi = (Sqrt[5] + 1)/2;
+projection8to3 = {
+    {phi, phi, 0, 0, 1, -1, 0, 0},
+    {1, -1, phi, phi, 0, 0, 0, 0},
+    {0, 0, 1, -1, phi, phi , 0, 0}
+};
+
+(* edges3d = Map[#.Transpose[projection8to3] &, unique8dEdges, {2}];
+
+unique3dEdges = Union[Expand[edges3d]];
+
+Length[unique3dEdges]
+
+Save["data/leech_3d_edges.wl", unique3dEdges];
+ *)
+
+unique3dEdges = Get["data/leech_3d_edges.wl"];
+norms = Map[Norm, unique3dEdges * 1.0];
+roundPrecision = 0.000001;
+
+rounded3dEdges = Round[unique3dEdges, roundPrecision];
+uniqueRounded3dEdges = Union[rounded3dEdges];
+(* 176310 *)
+rounded3dVertices = Union[Flatten[rounded3dEdges, 1]];
+(* 1057 *)
