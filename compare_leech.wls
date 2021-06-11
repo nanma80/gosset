@@ -121,10 +121,26 @@ unique3dEdges = Union[Expand[edges3d]];
 
 Length[unique3dEdges]
 
+randomVec = {0.318317, 0.257591, 0.554799};
+
+ordered3dEdges = Map[
+    If[#[[1]].randomVec >#[[2]].randomVec, Reverse[#], #] &,
+    unique3dEdges
+];
+
+rounded3dEdges = Round[ordered3dEdges, roundPrecision];
+uniqueRounded3dEdges = Union[rounded3dEdges];
+(* 135985 *)
+
+unique3dEdges = Union[ordered3dEdges];
+unique3dEdges = Select[unique3dEdges, Norm[# * 1.0] > 0.0001 &];
 Save["data/leech_3d_edges.wl", unique3dEdges];
+
+count: 135984
  *)
 
 unique3dEdges = Get["data/leech_3d_edges.wl"];
+(* 176310 *)
 norms = Map[Norm, unique3dEdges * 1.0];
 roundPrecision = 0.000001;
 
@@ -133,3 +149,18 @@ uniqueRounded3dEdges = Union[rounded3dEdges];
 (* 176310 *)
 rounded3dVertices = Union[Flatten[rounded3dEdges, 1]];
 (* 1057 *)
+
+randomVec = RandomReal[1, 3];
+randomVec = {0.318317, 0.257591, 0.554799};
+
+ordered3dEdges = Map[
+    If[#[[1]].randomVec >#[[2]].randomVec, Reverse[#], #] &,
+    unique3dEdges
+];
+
+rounded3dEdges = Round[ordered3dEdges, roundPrecision];
+uniqueRounded3dEdges = Union[rounded3dEdges];
+(* 135985 *)
+
+unique3dEdges = Union[ordered3dEdges];
+
