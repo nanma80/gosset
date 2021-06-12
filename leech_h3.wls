@@ -98,7 +98,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
                 FaceForm[colorMapEdges[#[[2]]]],
                 (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (#[[2]])^(1/4) ] *) (* 110 *)
                 (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (1 + Log[2, #[[2]]]) ] (* 111 *) *)
-                Cylinder[projectTo3d[#[[1]]], thickness/6 * (#[[2]])^(1/6) ] (* 112 *)
+                Cylinder[projectTo3d[#[[1]]], thickness/7 * (#[[2]])^(1/6) ] (* 112 *)
                 }&, edges3dRotatedTally],
 (* 
                 {

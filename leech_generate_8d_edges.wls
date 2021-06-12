@@ -48,6 +48,16 @@ get241Vertices[] := Module[
     vertices
 ];
 
+estimate[done_, elapsed_] := Module[
+    {total, todo, x},
+    total=196560;
+    todo = total-done;
+    result = x/.NSolve[total^2/todo^2==(elapsed+x)/x, x][[1]];
+    Print["Hours remaining: " <> TextString[result/3600.]];
+    Print["Estimated finish time: " <> TextString[DateObject[AbsoluteTime[] + result]]];
+    result
+];
+
 vertices = Get["data/leech_vertices.wl"];
 Print[Length[vertices]];
 
@@ -63,23 +73,28 @@ v1 = vertices[[1]];
 innerProducts = Tally[Map[v1.# &, vertices]]//Sort;
 Print[innerProducts];
 (* {{-32, 1}, {-16, 4600}, {-8, 47104}, {0, 93150}, {8, 47104}, {16, 4600}, {32, 1}} *)
+totalEdges = 196560*(4600+47104)/2;
 
-targetInner = 16;
-randomVec = RandomReal[1, 8];
+(* randomVec = RandomReal[1, 8]; *)
 randomVec = {0.175617, 0.50903, 0.0276916, 0.475733, 0.467449, 0.405671, 0.0302902, 0.45968};
 limit = Length[vertices];
+(* limit = 1000; *)
 startTime = AbsoluteTime[];
 edges8dMap = <||>;
 For[i = 1, i<=limit && i <= Length[vertices]-1, i++, 
     If[Mod[i, 100] == 0,
+        elapsed = Round[AbsoluteTime[] - startTime];
         Print[{i, 
             limit, 
             Length[edges8dMap], 
-            Round[AbsoluteTime[] - startTime]
-            }]
+            Total[Values[edges8dMap]],
+            totalEdges,
+            elapsed
+            }];
+        estimate[i, elapsed]
     ];
     For[j = i + 1, j <= limit && j <= Length[vertices], j++, 
-        If[vertices[[i]].vertices[[j]] == targetInner, 
+        If[vertices[[i]].vertices[[j]] == 16 || vertices[[i]].vertices[[j]] == 8, 
             edge8d = { vertices[[i]].tpm, vertices[[j]].tpm };
             If[edge8d[[1]].randomVec > edge8d[[2]].randomVec,
                 edge8d = Reverse[edge8d]
@@ -92,7 +107,7 @@ For[i = 1, i<=limit && i <= Length[vertices]-1, i++,
     ];
 ];
 Print[Length[edges8dMap]];
-Print[{Total[Values[edges8dMap]], 452088000}];
+Print[{Total[Values[edges8dMap]], totalEdges}];
 (* The number of 24 edges should be: 452088000 *)
 
 edges = Keys[edges8dMap];
