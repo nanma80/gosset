@@ -164,3 +164,4 @@ uniqueRounded3dEdges = Union[rounded3dEdges];
 
 unique3dEdges = Union[ordered3dEdges];
 
+edges3dMap = Get["data/leech_3d_edges_tally.wl"];

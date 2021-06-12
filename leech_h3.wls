@@ -10,7 +10,7 @@ thicknessRatio = 0.007;
 imageSize = {4, 3} * 240;
 roundPrecision = 0.000001;
 showEdges = False;
-(* showEdges = True; *)
+showEdges = True;
 
 start = AbsoluteTime[];
 Needs["POVRayRender`"];
@@ -18,7 +18,7 @@ ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pv
 
 imageFolder = "output";
 vertices = Get[dataFileName];
-edges3d = Get["data/leech_3d_edges.wl"];
+edges3dMap = Get["data/leech_3d_edges_tally.wl"];
 
 (* viewPoint = {0, 0, 1}; *)
 viewPoint = {1, -1, 1}/Sqrt[3];
@@ -41,7 +41,22 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     rotationPhi = RotationMatrix[{{0, phi, 1}, {0, 0, 1}}];
     rotationTheta = RotationMatrix[theta, {0, 0, 1}];
     vertices3d = vertices.Transpose[projectionMatrix * 1.0].Transpose[rotationPhi].Transpose[rotationTheta];
-    edges3dRotated = Map[#.Transpose[rotationPhi].Transpose[rotationTheta]&, edges3d * 1.0, {2}];
+
+    (* edges3dRotated = Map[#.Transpose[rotationPhi].Transpose[rotationTheta]&, edges3d * 1.0, {2}]; *)
+
+    edges3dRotatedTally = Map[{Table[#[[1]][[k]].Transpose[rotationPhi].Transpose[rotationTheta], {k, 2}] ,  #[[2]] }&, Normal[edges3dMap]];
+    Print["Finished tallying edges " <> IntegerString[edges3dRotatedTally//Length]];
+    tallyTallyEdges = Sort[Tally[Map[#[[2]]&, edges3dRotatedTally]]];
+    Print["Distribution of edge tally counts:"];
+    Print[tallyTallyEdges];
+    colorMapEdges = <||>;
+    colorCountEdges = Length[tallyTallyEdges];
+
+    For[colorIndex = 1, colorIndex <= Length[tallyTallyEdges], colorIndex ++,
+        multiplicity = tallyTallyEdges[[colorIndex]][[1]];
+        colorMapEdges[multiplicity] = Hue[Mod[colorIndex - 1 , colorCountEdges]/colorCountEdges, 1, 1 ];
+    ];
+    Print["Edge color count: " <> IntegerString[colorCountEdges]];
 
     matrixNorm = Norm[projectionMatrix[[1]]];
 
@@ -57,21 +72,6 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     roundedVertices3d = Round[vertices3d, roundPrecision];
     verticesTally = Tally[Expand[roundedVertices3d]];
 
-(*     vTally=Map[#[[1]]&, verticesTally];
-    Map[Round[Norm[#], roundPrecision]&, vTally]//Tally//Sort;
-    Select[vTally, Norm[#]>12.9 &]
-    Select[vTally, Norm[#]>12.3 && Norm[#]<12.4 &]
- *)
-    (* verticesTally = Tally[Expand[vertices3d]]; 
-    Save["data/leech_h3_tally.wl", verticesTally];
-    *)
-
-(* 
-from numeric and symbolic tally:
-{{1, 60}, {2, 64}, {32, 240}, {36, 12}, {64, 384}, {128, 160}, {640, 60}, {1152, 64}, {2048, 12}, {6500, 1}}
-1057 3D points
-*)
-
     Print["Finished tallying " <> IntegerString[verticesTally//Length]];
     tallyTally = Sort[Tally[Map[#[[2]]&, verticesTally]]];
     Print["Distribution of tally counts:"];
@@ -83,6 +83,7 @@ from numeric and symbolic tally:
         multiplicity = tallyTally[[colorIndex]][[1]];
         colorMap[multiplicity] = Hue[Mod[colorIndex - 1 , colorCount]/colorCount, 1, 1 ];
     ];
+    Print["vertex color count: " <> IntegerString[colorCount]];
 
     graph = Graphics3D[
         {
@@ -92,9 +93,18 @@ from numeric and symbolic tally:
             Sphere[projectTo3d[#[[1]]], thickness * (#[[2]])^(1/4) ]
             }&, verticesTally],
             If[showEdges,
+                Map[{
+                Opacity[1], 
+                FaceForm[colorMapEdges[#[[2]]]],
+                (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (#[[2]])^(1/4) ] *) (* 110 *)
+                (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (1 + Log[2, #[[2]]]) ] (* 111 *) *)
+                Cylinder[projectTo3d[#[[1]]], thickness/6 * (#[[2]])^(1/6) ] (* 112 *)
+                }&, edges3dRotatedTally],
+(* 
                 {
                     FaceForm[White], Map[Cylinder[#, thickness]&, Map[projectTo3d, edges3dRotated, {2}]]
                 },
+ *)
                 {}
             ]
         },
@@ -132,8 +142,8 @@ exportAnimation[] := Module[
     },
 
     shape = "leech";
-    frameFolder = shape <> "_h3_frames";
-    gifFileName = shape <> "_h3";
+    frameFolder = shape <> If[showEdges, "_with_edges", ""] <> "_h3_frames";
+    gifFileName = shape <> If[showEdges, "_with_edges", ""] <> "_h3";
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -166,7 +176,7 @@ exportAnimation[] := Module[
     Print["Saved the video to " <> gifFolder <> "\\" <> gifFileName <> ".mp4"];
 ];
 
-(* exportAnimation[]; *)
+exportAnimation[];
 
 (* exportImage[0, 101, "test"];
 exportImage[Pi/180 * 1, 102, "test"];
@@ -175,7 +185,7 @@ exportImage[Pi/180 * 3, 104, "test"];
 exportImage[Pi/180 * 4, 105, "test"];
  *)
 (* exportImage[Pi/180 * 45, 106, "test"]; *)
-exportImage[Pi/180 * 15, 108, "test"];
+(* exportImage[Pi/180 * 15, 112, "test"]; *)
 
 
 
