@@ -16,6 +16,7 @@ output/*frames*/**
 # temp ignore face_ while tuning
 data/test*.*
 # output/*.gif
+data/leech_8d_edges.wl
 
 # too large
 output/leech/leech_11_zoomed.*
