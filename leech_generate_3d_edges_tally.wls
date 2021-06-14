@@ -3,7 +3,7 @@
 edges8dMap = Get["data/leech_8d_edges.wl"];
 unique8dEdges = Keys[edges8dMap];
 Print[{Length[edges8dMap], Total[Values[edges8dMap]]}];
-(* {619081, 452088000} *)
+(* {2185801, 5081469120} *)
 
 phi = (Sqrt[5] + 1)/2;
 projection8to3 = {
@@ -33,7 +33,7 @@ For[i = 1, i <= Length[unique8dEdges], i++,
 ];
 
 Print[{Length[edges3dMap], Total[Values[edges3dMap]]}];
-(* 135985, 452088000 *)
+(* 373625, 5081469120 *)
 edges = Keys[edges3dMap];
 appearedVertices = Union[Flatten[edges, 1]];
 Print[{Length[appearedVertices], 1057}];

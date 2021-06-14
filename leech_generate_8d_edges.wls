@@ -108,7 +108,7 @@ For[i = 1, i<=limit && i <= Length[vertices]-1, i++,
 ];
 Print[Length[edges8dMap]];
 Print[{Total[Values[edges8dMap]], totalEdges}];
-(* The number of 24 edges should be: 452088000 *)
+(* The number of 24 edges should be: 5081469120 *)
 
 edges = Keys[edges8dMap];
 appearedVertices = Union[Flatten[edges, 1]];
