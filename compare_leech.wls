@@ -168,6 +168,14 @@ edges3dMap = Get["data/leech_3d_edges_tally.wl"];
 
 segments3dMap = Get["data/leech_3d_segments_tally.wl"];
 
-Sort[ Tally[Values[edges3dMap]], #1[[1]]<#2[[1]]&]
-Sort[ Tally[Values[segments3dMap]], #1[[1]]<#2[[1]]&]
+Print[Sort[ Tally[Values[edges3dMap]], #1[[1]]<#2[[1]]&]];
+Print[Sort[ Tally[Values[segments3dMap]], #1[[1]]<#2[[1]]&]];
 (* doesn't look right *)
+
+zeroEdges = Select[Keys[edges3dMap], #[[1]]==#[[2]] &];
+Map[edges3dMap, zeroEdges]//Total
+(* 56495728 *)
+
+zeroSegments = Select[Keys[segments3dMap], #[[1]]==#[[2]] &];
+Map[segments3dMap, zeroSegments]//Total
+(* 56495728 *)

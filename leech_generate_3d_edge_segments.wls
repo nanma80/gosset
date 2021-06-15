@@ -55,24 +55,14 @@ Print["starting the loop"];
 
 (* For[edgeIndex = 1, edgeIndex <= limit && edgeIndex <= Length[selectedIndices], edgeIndex ++, *)
 For[edgeIndex = 1, edgeIndex <= limit && edgeIndex <= Length[edges], edgeIndex ++,
-    If[Mod[edgeIndex, 100] == 0,
+    If[Mod[edgeIndex, 1000] == 0,
         elapsed = Round[AbsoluteTime[] - startTime];
-(*         Print[{edgeIndex, Length[selectedIndices], elapsed, TextString[Now], Length[segments3dMap], Total[Values[segments3dMap]],
-            TextString[DateObject[startTime + elapsed/edgeIndex * Length[selectedIndices]]], elapsed/edgeIndex * Length[selectedIndices] * 1.0
-            }]
- *)
         Print[{edgeIndex, Length[edges], elapsed, TextString[Now], Length[segments3dMap], Total[Values[segments3dMap]],
             TextString[DateObject[startTime + elapsed/edgeIndex * Length[edges]]], elapsed/edgeIndex * Length[edges] * 1.0
             }]
     ];
 
     edge1 = edges[[edgeIndex]];
-    (* edge1 = edges[[ selectedIndices[[edgeIndex]] ]]; *)
-
-    (* tSolution = Solve[ t > 0 && t < 1 && Apply[Or, Table[t edge1[[1]] + (1 - t) edge1[[2]] == appearedVertices[[k]], {k, 1, vertexCount}]], {t}]; *)
-    (* candidates = Select[Range[vertexCount], Abs[Det[ Join[edge1 * 1.0, appearedVertices[[{#}]] * 1.0] ] ] < 0.0001 &]; *)
-    (* candidates = Select[Range[vertexCount], Abs[Det[ Join[edge1 * 1.0, appearedVertices[[{#}]] * 1.0] ] ] < 0.0001 && (appearedVertices[[#]] - edge1[[1]]).(appearedVertices[[#]] - edge1[[2]]) < 0 &]; *)
-    (* tSolution = Solve[ t > 0 && t < 1 && Apply[Or, Table[t edge1[[1]] + (1 - t) edge1[[2]] == appearedVertices[[candidates[[k]]]], {k, 1, Length[candidates] }]], {t}]; *)
 
     candidates = Select[Range[vertexCount], 
         Abs[Det[ Join[edge1 * 1.0, appearedVertices[[{#}]] * 1.0] ] ] < roundPrecision 
@@ -82,8 +72,6 @@ For[edgeIndex = 1, edgeIndex <= limit && edgeIndex <= Length[edges], edgeIndex +
         ];
 
     If[Length[candidates] > 0,
-        (* Print[{ edgeIndex, Length[candidates]}]; *)
-        (* breakPoints = Sort[ Expand[Simplify[t edge1[[1]] + (1 - t) edge1[[2]]/.tSolution]], #1.randomVec < #2.randomVec &]; *)
         breakPoints = Sort[ appearedVertices[[candidates]], #1.randomVec < #2.randomVec &];
 
         bpCount = Length[breakPoints];
@@ -94,14 +82,14 @@ For[edgeIndex = 1, edgeIndex <= limit && edgeIndex <= Length[edges], edgeIndex +
             segments3dMap = mergeMap[segments3dMap, {breakPoints[[bpIndex]], breakPoints[[bpIndex + 1]]}, edges3dMap[edge1]];    
         ];
         ,
-        segments3dMap = mergeMap[segments3dMap, edge1, edges3dMap[edge1]];
-        segments3dMap[edge1] = edges3dMap[edge1]
+        segments3dMap = mergeMap[segments3dMap, edge1, edges3dMap[edge1]]
+        (* segments3dMap[edge1] = edges3dMap[edge1] *)
     ];
 ];
 Print[Round[AbsoluteTime[] - startTime]];
 (* Print[{ Length[selectedIndices], Length[segments3dMap], Total[Values[segments3dMap]], selectedEdgesCount8d, Total[Values[segments3dMap]]- selectedEdgesCount8d, SegmentIncrement}]; *)
 Print[{ edgeIndex-1, Length[segments3dMap], Total[Values[segments3dMap]], Total[Values[edges3dMap]], Total[Values[segments3dMap]]- Total[Values[edges3dMap]], SegmentIncrement}];
-
+(* {373625, 300913, 8890692480, 5081469120, 3809223360, 3809223360} *)
 
 segments = Keys[segments3dMap];
 appearedVerticesInSegments = Union[Flatten[segments, 1]];
@@ -109,26 +97,7 @@ Print[{Length[appearedVerticesInSegments], 1057}];
 
 Save["data/leech_3d_segments_tally.wl", segments3dMap];
 
-(* 
-1:
-2713 -> 826 
-{826, 216267754, 138575552, 77692202, 236951040}
-
-7:
-2026 -> 756
-
-17:
-1450 -> 696
-
-800:
-150 -> 150
-
-1682:
-60 -> 60
-
-*)
-
-(* 
+(*
 benchmark:
 17, 1450, limit = 100
 original: estimate at 100: 986
