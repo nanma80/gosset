@@ -165,3 +165,9 @@ uniqueRounded3dEdges = Union[rounded3dEdges];
 unique3dEdges = Union[ordered3dEdges];
 
 edges3dMap = Get["data/leech_3d_edges_tally.wl"];
+
+segments3dMap = Get["data/leech_3d_segments_tally.wl"];
+
+Sort[ Tally[Values[edges3dMap]], #1[[1]]<#2[[1]]&]
+Sort[ Tally[Values[segments3dMap]], #1[[1]]<#2[[1]]&]
+(* doesn't look right *)
