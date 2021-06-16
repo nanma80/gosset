@@ -179,7 +179,7 @@ exportAnimation[] := Module[
     Print["Saved the video to " <> gifFolder <> "\\" <> gifFileName <> ".mp4"];
 ];
 
-exportAnimation[];
+(* exportAnimation[]; *)
 
 (* exportImage[0, 101, "test"];
 exportImage[Pi/180 * 1, 102, "test"];
@@ -191,6 +191,7 @@ exportImage[Pi/180 * 4, 105, "test"];
 (* exportImage[Pi/180 * 15, 112, "test"]; *)
 (* exportImage[Pi/180 * 15, 116, "test"]; *)
 (* exportImage[Pi/180 * 15, 117, "test"]; *)
+exportImage[Pi/180 * 15, 119, "test"];
 
 
 end = AbsoluteTime[];
