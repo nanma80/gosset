@@ -18,7 +18,8 @@ ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pv
 
 imageFolder = "output";
 vertices = Get[dataFileName];
-edges3dMap = Get["data/leech_3d_edges_tally.wl"];
+(* edges3dMap = Get["data/leech_3d_edges_tally.wl"]; *)
+edges3dMap = Get["data/leech_3d_segments_tally.wl"];
 
 (* viewPoint = {0, 0, 1}; *)
 viewPoint = {1, -1, 1}/Sqrt[3];
@@ -47,14 +48,14 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     edges3dRotatedTally = Map[{Table[#[[1]][[k]].Transpose[rotationPhi].Transpose[rotationTheta], {k, 2}] ,  #[[2]] }&, Normal[edges3dMap]];
     Print["Finished tallying edges " <> IntegerString[edges3dRotatedTally//Length]];
     tallyTallyEdges = Sort[Tally[Map[#[[2]]&, edges3dRotatedTally]]];
-    Print["Distribution of edge tally counts:"];
-    Print[tallyTallyEdges];
+    (* Print["Distribution of edge tally counts:"]; *)
+    (* Print[tallyTallyEdges]; *)
     colorMapEdges = <||>;
     colorCountEdges = Length[tallyTallyEdges];
 
     For[colorIndex = 1, colorIndex <= Length[tallyTallyEdges], colorIndex ++,
         multiplicity = tallyTallyEdges[[colorIndex]][[1]];
-        colorMapEdges[multiplicity] = Hue[Mod[colorIndex - 1 , colorCountEdges]/colorCountEdges, 1, 1 ];
+        colorMapEdges[multiplicity] = Hue[Mod[0.2 + (colorIndex - 1) * 13./colorCountEdges, 1 ], 1, 1 ];
     ];
     Print["Edge color count: " <> IntegerString[colorCountEdges]];
 
@@ -98,7 +99,8 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
                 FaceForm[colorMapEdges[#[[2]]]],
                 (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (#[[2]])^(1/4) ] *) (* 110 *)
                 (* Cylinder[projectTo3d[#[[1]]], thickness/6 * (1 + Log[2, #[[2]]]) ] (* 111 *) *)
-                Cylinder[projectTo3d[#[[1]]], Max[thickness/7, thickness/7/3 * (#[[2]])^(1/6)] ] (* 112 *)
+                (* Cylinder[projectTo3d[#[[1]]], Max[thickness/7, thickness/7/3 * (#[[2]])^(1/6)] ] (* 112 *) *)
+                Cylinder[projectTo3d[#[[1]]], thickness/7/2 * (#[[2]])^(1/4) ] (* 117 *)
                 (* Cylinder[projectTo3d[#[[1]]], thickness/21 ] (* 113 *) *)
                 }&, edges3dRotatedTally],
 (* 
@@ -177,7 +179,7 @@ exportAnimation[] := Module[
     Print["Saved the video to " <> gifFolder <> "\\" <> gifFileName <> ".mp4"];
 ];
 
-(* exportAnimation[]; *)
+exportAnimation[];
 
 (* exportImage[0, 101, "test"];
 exportImage[Pi/180 * 1, 102, "test"];
@@ -187,7 +189,8 @@ exportImage[Pi/180 * 4, 105, "test"];
  *)
 (* exportImage[Pi/180 * 45, 106, "test"]; *)
 (* exportImage[Pi/180 * 15, 112, "test"]; *)
-exportImage[Pi/180 * 15, 114, "test"];
+(* exportImage[Pi/180 * 15, 116, "test"]; *)
+(* exportImage[Pi/180 * 15, 117, "test"]; *)
 
 
 end = AbsoluteTime[];
