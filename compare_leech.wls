@@ -179,3 +179,61 @@ Map[edges3dMap, zeroEdges]//Total
 zeroSegments = Select[Keys[segments3dMap], #[[1]]==#[[2]] &];
 Map[segments3dMap, zeroSegments]//Total
 (* 56495728 *)
+
+(* getting 8-dimensions from front and end *)
+pm2 = ArrayFlatten[{{IdentityMatrix[8] * 1, IdentityMatrix[8] * 0, IdentityMatrix[8] * 1}}];
+v82 = vGroTsen.Transpose[pm2];
+v82 = Union[v82];
+Print[Length[v82]];
+(* 2641 points *)
+
+Tally[Map[Sort[#] &, Abs[v8]]]//Sort//InputForm
+(* 
+{{{0, 0, 0, 0, 0, 0, 4, 4}, 112}, {{0, 0, 0, 0, 0, 0, 0, 4}, 16}, {{1, 1, 1, 1, 1, 1, 1, 3}, 1024}, {{2, 2, 2, 2, 2, 2, 2, 2}, 128}, {{0, 0, 0, 0, 2, 2, 2, 2}, 1120}, {{0, 0, 0, 0, 0, 0, 2, 2}, 112}, {{1, 1, 1, 1, 1, 1, 1, 1}, 128}, {{0, 0, 0, 0, 0, 0, 0, 0}, 1}} 
+*)
+
+Tally[Map[Sort[#] &, Abs[v82]]]//Sort//InputForm
+(* 
+{{{0, 0, 0, 0, 0, 0, 0, 0}, 1}, {{0, 0, 0, 0, 0, 0, 0, 4}, 16}, {{0, 0, 0, 0, 0, 0, 0, 8}, 16}, {{0, 0, 0, 0, 0, 0, 4, 4}, 112}, {{0, 0, 0, 0, 2, 2, 2, 2}, 224}, {{0, 0, 0, 0, 4, 4, 4, 4}, 224}, {{0, 0, 0, 2, 2, 2, 2, 4}, 1792}, {{2, 2, 2, 2, 2, 2, 2, 2}, 256}}
+ *)
+
+v3 = Union[Expand[v8.Transpose[projection8to3]]];
+v32 = Union[Expand[v82.Transpose[projection8to3]]];
+
+
+
+phi = (Sqrt[5] + 1)/2;
+projection8to3 = {
+    {phi, phi, 0, 0, 1, -1, 0, 0},
+    {1, -1, phi, phi, 0, 0, 0, 0},
+    {0, 0, 1, -1, phi, phi, 0, 0}
+};
+
+projectionMatrix = ArrayFlatten[{{projection8to3 * 1, projection8to3 * 0, projection8to3 * 0 }}];
+
+vertices3d = vertices.Transpose[projectionMatrix * 1.0];
+
+roundPrecision = 0.000001;
+
+roundedVertices3d = Round[vertices3d, roundPrecision];
+verticesTally = Tally[Expand[roundedVertices3d]];
+
+Print["Finished tallying " <> IntegerString[verticesTally//Length]];
+tallyTally = Sort[Tally[Map[#[[2]]&, verticesTally]]];
+Print["Distribution of tally counts:"];
+Print[tallyTally];
+
+uniqueV3 = Map[#[[1]]&, verticesTally];
+Tally[ Round[Map[Norm, uniqueV3], roundPrecision ]]//Sort 
+
+(* 
+if projection matrix = 1, 0, 0 times 8to3, 32 different norms
+icosahedral symmetry
+
+if projection matrix = 1, 0, 1 times 8to3, 44 different norms
+octahedron symmetry. Largest norms: vertices of octahedron, edge centers, vertices of cube etc.
+
+*)
+
+Select[uniqueV3, Norm[#]>12.4 && Norm[#]<12.99 &]
+
