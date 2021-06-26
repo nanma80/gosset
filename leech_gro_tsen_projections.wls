@@ -5,9 +5,9 @@ shape = "leech_vertices";
 dataFileName = FileNameJoin[{dataFolder, shape <> ".wl"}];
 
 exportToPov = True;
-rangeFactor = 0.78;
+rangeFactor = 0.765;
 thicknessRatio = 0.003;
-imageSize = {4, 3} * 240;
+imageSize = {4, 3} * 360;
 roundPrecision = 0.000001;
 limit = 1000;
 
