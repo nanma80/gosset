@@ -3,13 +3,14 @@
 (* https://www.physast.uga.edu/~mgeller/JPA34p10243.pdf *)
 
 imageFolder = "output";
-imageSize = 150 * {4, 3};
+imageSize = 240 * {4, 3};
 exportToPov = True;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
 ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pvengine64.exe"];
 
+colors = {Red, Blue, Green, Yellow, Magenta, Cyan, Brown, Orange, Pink, Purple};
 cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
 
 orthoplexVertices[dimension_] := Module[
@@ -90,6 +91,7 @@ getTriangularFaces[vertices_] := Module[
     faces
 ];
 
+projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
@@ -123,8 +125,9 @@ For[i = 1, i <= Length[vertexGroups], i++,
     faces = Map[g1[[#]]&, faceIndices];
     AppendTo[faceGroups, faces];
 
+    (* verified: every group is indeed a 24-cell *)
 
-    orthogonalIndices =
+(*     orthogonalIndices =
         Select[Subsets[Range[Length[g1]], {4}], 
             Simplify[g1[[#[[1]]]].g1[[#[[2]]]]] == 0
             && Simplify[g1[[#[[1]]]].g1[[#[[3]]]]] == 0
@@ -135,13 +138,50 @@ For[i = 1, i <= Length[vertexGroups], i++,
         ];
     bases = g1[[orthogonalIndices[[1]]]];
     generatedG1 = vertices24Cell.bases;
-    Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}];
-    (* verified: every group is indeed a 24-cell *)
+    Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}]; *)
 ];
 
-(* when vertices = get421Vertices[True]; s4s are 24 * 10 *)
+phi = (Sqrt[5] + 1)/2;
 
-(* outputFileName = "plot" <> If[exportToPov, "_pov", "_native"] <> ".png";
+projection8to4 = {
+    {phi, phi, 0, 0, 1, -1, 0, 0},
+    {1, -1, phi, phi, 0, 0, 0, 0},
+    {0, 0, 1, -1, phi, phi , 0, 0},
+    {0, 0, 0, 0, 0, 0, phi+1, phi-1}
+};
+
+projection4to3 = {
+    {0, 0, 2 Sin[2 Pi/15], (1 + Sqrt[5]) Sin[Pi/15]},
+    {1, -(1 + Sqrt[5]) Sin[Pi/30], 0, 0},
+    Table[0, {k, 4}]
+};
+
+projectionMatrix = projection4to3.projection8to4;
+
+vertexGroups3d = Map[projectionMatrix.# &, vertexGroups, {2}];
+
+viewPoint = {0, 0, 1};
+range = 6;
+thickness = 0.1;
+lighting = {{"Point", White, {10, -10, 10}}};
+
+graphElements = {};
+For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
+    AppendTo[graphElements, {
+        Opacity[1],
+        FaceForm[colors[[groupIndex]]],
+        Sphere[vertexGroups3d[[groupIndex]], thickness]
+    }];
+];
+
+graph = Graphics3D[
+        graphElements,
+        ViewPoint -> viewPoint * 3000,
+        PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
+        Lighting -> lighting
+    ];
+
+outputFileName = "e8_421/hopf" <> If[exportToPov, "_pov", "_native"] <> ".png";
 outputFileName = FileNameJoin[{imageFolder, outputFileName}];
 cropCommand = "mogrify -crop " <> IntegerString[imageSize[[2]]] <> "x" <> IntegerString[imageSize[[2]]] <> "+" <> IntegerString[(imageSize[[1]]-imageSize[[2]])/2] <> "+0 " <> outputFileName;
 
@@ -158,4 +198,3 @@ If[exportToPov,
     Export[outputFileName, graph];
 ];
 
- *)
