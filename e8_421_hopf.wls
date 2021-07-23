@@ -109,10 +109,21 @@ Print[Map[#[[2]]&, Tally[s3s]]//Tally];
 
 s3GroupsMap = GroupBy[vertices, getS4[getComplexNumbers[#]]&];
 uniqueS4s = Keys[s3GroupsMap];
-s3Groups = Values[s3GroupsMap];
+vertexGroups = Values[s3GroupsMap];
+edgeGroups = {};
+faceGroups = {};
 
-For[i = 1, i <= Length[s3Groups], i++,
-    g1 = s3Groups[[i]];
+For[i = 1, i <= Length[vertexGroups], i++,
+    g1 = vertexGroups[[i]];
+    edgeIndices = getEdges[g1];
+    edges = Map[g1[[#]]&, edgeIndices];
+    AppendTo[edgeGroups, edges];
+
+    faceIndices = getTriangularFaces[g1];
+    faces = Map[g1[[#]]&, faceIndices];
+    AppendTo[faceGroups, faces];
+
+
     orthogonalIndices =
         Select[Subsets[Range[Length[g1]], {4}], 
             Simplify[g1[[#[[1]]]].g1[[#[[2]]]]] == 0
