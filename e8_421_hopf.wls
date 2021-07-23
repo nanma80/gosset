@@ -5,6 +5,9 @@
 imageFolder = "output";
 imageSize = 240 * {4, 3};
 exportToPov = True;
+showVertices = True;
+showEdges = True;
+showFaces = False;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -150,28 +153,75 @@ projection8to4 = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
+(* permutations = Permutations[Range[8]];
+
+For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+    perm = permutations[[permIndex]];
+    vertexGroups4d = Map[Transpose[Transpose[projection8to4][[perm]]].# &, vertexGroups, {2}];
+    tally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
+    If[Length[tally] == 1,
+        Print[{permIndex, perm, tally}];
+    ];
+];
+ *)
+
+projection8to4 = Transpose[Transpose[projection8to4][[{1, 2, 3, 4, 5, 7, 8, 6}]]];
+
+vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
+Print[Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]]];
+
+
+
 projection4to3 = {
     {0, 0, 2 Sin[2 Pi/15], (1 + Sqrt[5]) Sin[Pi/15]},
     {1, -(1 + Sqrt[5]) Sin[Pi/30], 0, 0},
     Table[0, {k, 4}]
 };
 
+projection4to3 = IdentityMatrix[4][[{1,2,3}]];
+
 projectionMatrix = projection4to3.projection8to4;
 
 vertexGroups3d = Map[projectionMatrix.# &, vertexGroups, {2}];
+edgeGroups3d = Map[projectionMatrix.# &, edgeGroups, {3}];
+faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 
-viewPoint = {0, 0, 1};
+(* viewPoint = {1, 0, phi}; *)
+(* viewPoint = {-1, 0, phi}; *)
+(* viewPoint = {0, -phi, -1}; *)
+(* viewPoint = {0, -phi, 1}; *)
+(* viewPoint = {-phi, -1, 0}; *)
+viewPoint = {phi, -1, 0};
+
 range = 6;
 thickness = 0.1;
 lighting = {{"Point", White, {10, -10, 10}}};
 
 graphElements = {};
 For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
-    AppendTo[graphElements, {
-        Opacity[1],
-        FaceForm[colors[[groupIndex]]],
-        Sphere[vertexGroups3d[[groupIndex]], thickness]
-    }];
+    If[showVertices,
+        AppendTo[graphElements, {
+            Opacity[1],
+            FaceForm[colors[[groupIndex]]],
+            Sphere[vertexGroups3d[[groupIndex]], thickness]
+        }]
+    ];
+
+    If[showEdges && groupIndex <= 10,
+        AppendTo[graphElements, {
+            Opacity[1],
+            FaceForm[colors[[groupIndex]] ],
+            Cylinder[edgeGroups3d[[groupIndex]], thickness * 0.8]
+        }]
+    ];
+
+    If[showFaces,
+        AppendTo[graphElements, {
+            Opacity[0.5],
+            FaceForm[colors[[groupIndex]] ],
+            Map[Polygon, faceGroups3d[[groupIndex]]]
+        }]
+    ];
 ];
 
 graph = Graphics3D[
