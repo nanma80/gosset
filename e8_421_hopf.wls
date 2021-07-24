@@ -156,6 +156,7 @@ projection8to4 = {
 (* permutations = Permutations[Range[8]];
 
 For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+    If[Mod[permIndex, 100] == 1, Print[{permIndex, Length[permutations]}]];
     perm = permutations[[permIndex]];
     vertexGroups4d = Map[Transpose[Transpose[projection8to4][[perm]]].# &, vertexGroups, {2}];
     tally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
@@ -178,7 +179,7 @@ projection4to3 = {
     Table[0, {k, 4}]
 };
 
-projection4to3 = IdentityMatrix[4][[{1,2,3}]];
+(* projection4to3 = IdentityMatrix[4][[{1,2,3}]]; *)
 
 projectionMatrix = projection4to3.projection8to4;
 
@@ -191,7 +192,9 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {0, -phi, -1}; *)
 (* viewPoint = {0, -phi, 1}; *)
 (* viewPoint = {-phi, -1, 0}; *)
-viewPoint = {phi, -1, 0};
+(* viewPoint = {phi, -1, 0}; *)
+viewPoint = {0, 0, 10};
+
 
 range = 6;
 thickness = 0.1;
