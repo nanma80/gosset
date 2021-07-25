@@ -8,6 +8,7 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = False;
+tryPerms = True;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -153,33 +154,48 @@ projection8to4 = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
-(* permutations = Permutations[Range[8]];
+If[tryPerms,
+    permutations = Permutations[Range[8]];
 
-For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
-    If[Mod[permIndex, 100] == 1, Print[{permIndex, Length[permutations]}]];
-    perm = permutations[[permIndex]];
-    vertexGroups4d = Map[Transpose[Transpose[projection8to4][[perm]]].# &, vertexGroups, {2}];
-    tally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
-    If[Length[tally] == 1,
-        Print[{permIndex, perm, tally}];
+    For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+        If[Mod[permIndex, 100] == 1, Print[{permIndex, Length[permutations]}]];
+        perm = permutations[[permIndex]];
+        newProjection = Transpose[Transpose[projection8to4][[perm]]];
+        vertexGroups4d = Map[newProjection.# &, vertexGroups, {2}];
+        edgeGroups4d = Map[newProjection.# &, edgeGroups, {3}];
+        faceGroups4d = Map[newProjection.# &, faceGroups, {3}];
+
+        edgeCenterGroups4d = Table[Map[Total, edgeGroups4d[[k]]], {k, 1, Length[edgeGroups4d]}];
+        faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}];
+
+        vertexTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
+        edgeTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, edgeCenterGroups4d, {2}]]]]];
+        faceTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, faceCenterGroups4d, {2}]]]]];
+
+        (* Print[{permIndex, perm, Length[vertexTally], Length[edgeTally], Length[faceTally]}]; *)
+
+        If[Length[vertexTally] == 1 && Length[edgeTally] == 1 && Length[faceTally] == 1,
+            Print[{permIndex, perm}];
+        ];
     ];
 ];
+
+projection8to4 = Transpose[Transpose[projection8to4][[{1, 2, 3, 4, 5, 8, 7, 6}]]];
+
+(* vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
+edgeGroups4d = Map[projection8to4.# &, edgeGroups, {3}];
+faceGroups4d = Map[projection8to4.# &, faceGroups, {3}];
+
+edgeCenterGroups4d = Table[Map[Total, edgeGroups4d[[k]]], {k, 1, Length[edgeGroups4d]}];
+faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}];
  *)
-
-projection8to4 = Transpose[Transpose[projection8to4][[{1, 2, 3, 4, 5, 7, 8, 6}]]];
-
-vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
-Print[Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]]];
-
-
-
 projection4to3 = {
     {0, 0, 2 Sin[2 Pi/15], (1 + Sqrt[5]) Sin[Pi/15]},
     {1, -(1 + Sqrt[5]) Sin[Pi/30], 0, 0},
     Table[0, {k, 4}]
 };
 
-(* projection4to3 = IdentityMatrix[4][[{1,2,3}]]; *)
+projection4to3 = IdentityMatrix[4][[{1,2,3}]];
 
 projectionMatrix = projection4to3.projection8to4;
 
@@ -190,10 +206,10 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {1, 0, phi}; *)
 (* viewPoint = {-1, 0, phi}; *)
 (* viewPoint = {0, -phi, -1}; *)
-(* viewPoint = {0, -phi, 1}; *)
+viewPoint = {0, -phi, 1};
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
-viewPoint = {0, 0, 10};
+(* viewPoint = {0, 0, 10}; *)
 
 
 range = 6;
