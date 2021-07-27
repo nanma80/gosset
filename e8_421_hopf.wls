@@ -186,7 +186,7 @@ Print[nonZeroEntries];
 If[tryPerms,
     minNonZeroEntries = 100000;
     For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
-        If[Mod[permIndex, 100] == 1, Print[{permIndex, Length[permutations]}]];
+        If[Mod[permIndex, 1] == 0, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
         vertexGroups4d = Map[newProjection.# &, vertexGroups, {2}];
@@ -208,13 +208,17 @@ If[tryPerms,
  *)
 
         vertices4d = Map[newProjection.# &, vertices]//Simplify;
-        v1 = vertices4d[[1]];
-        outerShell = Select[vertices4d, Norm[#] * 1.0 > 0.999 Norm[v1]&];
+        outerShell = Select[vertices4d, Norm[#] > 6&];
+        v1 = outerShell[[1]];
+        If[Length[outerShell] != 120, Continue[]];
         firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
+        If[Length[firstCage] != 12, Continue[]];
         vTop = firstCage[[1]];
         firstCircle = Select[firstCage, (#.vTop > 33 && #.vTop < 34)&];
+        If[Length[firstCircle] != 5, Continue[]];
         vCircleMark = firstCircle[[1]];
         vCircleLR = Select[firstCircle, (#.vCircleMark > 33 && #.vCircleMark < 34)&];
+        If[Length[vCircleLR] != 2, Continue[]];
 
         mirror1 = vCircleMark - vCircleLR[[1]];
         mirror2 = vCircleLR[[1]] - vCircleLR[[2]];
@@ -230,17 +234,34 @@ If[tryPerms,
         ];
 
         If[Length[vertexTally] == 1,
-            vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}];
-            (* vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}]; *)
+            For[outerShellIndex = 1, outerShellIndex <= Length[outerShell], outerShellIndex++,
+                v1 = outerShell[[outerShellIndex]];
+                firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
+                If[Length[firstCage] != 12, Continue[]];
 
-            intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
-            nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
-            totalIntersection = Total[Total[intersectionMatrix]];
+                For[firstCageIndex = 1, firstCageIndex <= Length[firstCage], firstCageIndex++,
+                    vTop = firstCage[[firstCageIndex]];
+                    firstCircle = Select[firstCage, (#.vTop > 33 && #.vTop < 34)&];
+                    If[Length[firstCircle] != 5, Continue[]];
+                    vCircleMark = firstCircle[[1]];
+                    vCircleLR = Select[firstCircle, (#.vCircleMark > 33 && #.vCircleMark < 34)&];
+                    If[Length[vCircleLR] != 2, Continue[]];
 
-            If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d], 
-                minNonZeroEntries = nonZeroEntries;
-                Print[{permIndex, perm, nonZeroEntries, totalIntersection}];
-                Print[intersectionMatrix];
+                    mirror1 = vCircleMark - vCircleLR[[1]];
+                    mirror2 = vCircleLR[[1]] - vCircleLR[[2]];
+
+                    vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}];
+                    (* vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}]; *)
+
+                    intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
+                    nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
+                    totalIntersection = Total[Total[intersectionMatrix]];
+                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d], 
+                        minNonZeroEntries = nonZeroEntries;
+                        Print[{permIndex, outerShellIndex, firstCageIndex, perm, nonZeroEntries, totalIntersection}];
+                        Print[intersectionMatrix];
+                    ];
+                ];
             ];
         ];
     ];
@@ -251,7 +272,7 @@ random mirrors:
 2 mirrors: 182, 40 non zero, {6,6,6,6}*10 
 1 mirror: 25, 34, 24, 24, 6666*8
 mirrors around the first cage
-2887, {1, 6, 2, 3, 5, 4, 7, 8}, 10, 240
+false: 2887, {1, 6, 2, 3, 5, 4, 7, 8}, 10, 240
 *)
 
 
