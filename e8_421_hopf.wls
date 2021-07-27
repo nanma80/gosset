@@ -9,12 +9,14 @@ showVertices = True;
 showEdges = True;
 showFaces = False;
 tryPerms = True;
+roundPrecision = 0.000001;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
 ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pvengine64.exe"];
 
 colors = {Red, Blue, Green, Yellow, Magenta, Cyan, Brown, Orange, Pink, Purple};
+reflect[point_, mirror_] := point - 2 * (point.mirror)/(mirror.mirror)*mirror;
 cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
 
 orthoplexVertices[dimension_] := Module[
@@ -154,33 +156,102 @@ projection8to4 = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
-If[tryPerms,
-    permutations = Permutations[Range[8]];
+permutations = Permutations[Range[8]];
+(* permIndex = 12;
+perm = permutations[[permIndex]];
+newProjection = Transpose[Transpose[projection8to4][[perm]]];
+vertices4d = Map[newProjection.# &, vertices]//Simplify;
+mirror1 = vertices4d[[2]] - vertices4d[[1]];
+mirror2 = vertices4d[[27]] - vertices4d[[1]];
+Print[{mirror1, mirror2}//N];
+vertices4dReflected = Map[reflect[#, mirror2]&, vertices4d]//Simplify;
+ *)(* vertices4dReflected = Map[reflect[reflect[#, mirror1], mirror2]&, vertices4d]; *)
 
+(* Print[Length[Intersection[Round[vertices4d, roundPrecision], Round[vertices4dReflected, roundPrecision]]]]; *)
+
+(* permIndex = 12;
+
+perm = permutations[[permIndex]];
+newProjection = Transpose[Transpose[projection8to4][[perm]]];
+vertexGroups4d = Map[newProjection.# &, vertexGroups, {2}];
+edgeGroups4d = Map[newProjection.# &, edgeGroups, {3}];
+faceGroups4d = Map[newProjection.# &, faceGroups, {3}];
+
+vertices4dReflected = Map[reflect[#, mirror1]&, vertices4d];
+vertexGroups4dReflected = Map[reflect[#, mirror1]&, vertexGroups4d, {2}];
+intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
+nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
+Print[nonZeroEntries];
+ *)
+If[tryPerms,
+    minNonZeroEntries = 100000;
     For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
         If[Mod[permIndex, 100] == 1, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
         vertexGroups4d = Map[newProjection.# &, vertexGroups, {2}];
-        edgeGroups4d = Map[newProjection.# &, edgeGroups, {3}];
-        faceGroups4d = Map[newProjection.# &, faceGroups, {3}];
+        (* edgeGroups4d = Map[newProjection.# &, edgeGroups, {3}]; *)
+        (* faceGroups4d = Map[newProjection.# &, faceGroups, {3}]; *)
 
-        edgeCenterGroups4d = Table[Map[Total, edgeGroups4d[[k]]], {k, 1, Length[edgeGroups4d]}];
-        faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}];
+        (* edgeCenterGroups4d = Table[Map[Total, edgeGroups4d[[k]]], {k, 1, Length[edgeGroups4d]}]; *)
+        (* faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}]; *)
 
         vertexTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
-        edgeTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, edgeCenterGroups4d, {2}]]]]];
-        faceTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, faceCenterGroups4d, {2}]]]]];
+        (* edgeTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, edgeCenterGroups4d, {2}]]]]]; *)
+        (* faceTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, faceCenterGroups4d, {2}]]]]]; *)
 
         (* Print[{permIndex, perm, Length[vertexTally], Length[edgeTally], Length[faceTally]}]; *)
 
-        If[Length[vertexTally] == 1 && Length[edgeTally] == 1 && Length[faceTally] == 1,
+(*         If[Length[vertexTally] == 1 && Length[edgeTally] == 1 && Length[faceTally] == 1,
             Print[{permIndex, perm}];
+        ];
+ *)
+
+        vertices4d = Map[newProjection.# &, vertices]//Simplify;
+        v1 = vertices4d[[1]];
+        mirrorVertices = Select[vertices4d, Norm[#] * 1.0 > 0.999 Norm[v1]&];
+
+        mirror1 = mirrorVertices[[2]] - mirrorVertices[[1]];
+        For[mirrorIndex = 3, mirrorIndex <= Length[mirrorVertices], mirrorIndex ++,
+            mirror2 = mirrorVertices[[mirrorIndex]] - mirrorVertices[[1]];
+            If[ Abs[mirror1.mirror2] < 0.9999 Norm[mirror1 1.0] Norm[mirror2 1.0], Break[] ]
+        ];
+
+        (* Print[{mirrorIndex, mirror1, mirror2}//N]; *)
+        vertices4dReflected = Map[reflect[#, mirror2]&, vertices4d]//Simplify;
+        (* vertices4dReflected = Map[reflect[reflect[#, mirror1], mirror2]&, vertices4d]; *)
+
+        overallIntersection = Length[Intersection[Round[vertices4d, roundPrecision], Round[vertices4dReflected, roundPrecision]]];
+        
+        If[overallIntersection != Length[vertices4d],
+            Continue[]
+        ];
+
+        If[Length[vertexTally] == 1,
+            vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}];
+            (* vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}]; *)
+
+            intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
+            nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
+            totalIntersection = Total[Total[intersectionMatrix]];
+
+            If[nonZeroEntries < minNonZeroEntries, 
+                minNonZeroEntries = nonZeroEntries;
+                Print[{permIndex, perm, nonZeroEntries, totalIntersection}];
+                Print[intersectionMatrix];
+            ];
         ];
     ];
 ];
 
-projection8to4 = Transpose[Transpose[projection8to4][[{1, 2, 3, 4, 5, 8, 7, 6}]]];
+(* 
+182: 40 non zero, {6,6,6,6}*10 
+
+*)
+
+
+permIndex = 182;
+projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
 
 (* vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
 edgeGroups4d = Map[projection8to4.# &, edgeGroups, {3}];
@@ -205,8 +276,8 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 
 (* viewPoint = {1, 0, phi}; *)
 (* viewPoint = {-1, 0, phi}; *)
-(* viewPoint = {0, -phi, -1}; *)
-viewPoint = {0, -phi, 1};
+viewPoint = {0, -phi, -1};
+(* viewPoint = {0, -phi, 1}; *)
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
 (* viewPoint = {0, 0, 10}; *)
