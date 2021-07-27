@@ -209,33 +209,35 @@ If[tryPerms,
 
         vertices4d = Map[newProjection.# &, vertices]//Simplify;
         v1 = vertices4d[[1]];
-        mirrorVertices = Select[vertices4d, Norm[#] * 1.0 > 0.999 Norm[v1]&];
+        outerShell = Select[vertices4d, Norm[#] * 1.0 > 0.999 Norm[v1]&];
+        firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
+        vTop = firstCage[[1]];
+        firstCircle = Select[firstCage, (#.vTop > 33 && #.vTop < 34)&];
+        vCircleMark = firstCircle[[1]];
+        vCircleLR = Select[firstCircle, (#.vCircleMark > 33 && #.vCircleMark < 34)&];
 
-        mirror1 = mirrorVertices[[2]] - mirrorVertices[[1]];
-        For[mirrorIndex = 3, mirrorIndex <= Length[mirrorVertices], mirrorIndex ++,
-            mirror2 = mirrorVertices[[mirrorIndex]] - mirrorVertices[[1]];
-            If[ Abs[mirror1.mirror2] < 0.9999 Norm[mirror1 1.0] Norm[mirror2 1.0], Break[] ]
-        ];
+        mirror1 = vCircleMark - vCircleLR[[1]];
+        mirror2 = vCircleLR[[1]] - vCircleLR[[2]];
 
         (* Print[{mirrorIndex, mirror1, mirror2}//N]; *)
-        vertices4dReflected = Map[reflect[#, mirror2]&, vertices4d]//Simplify;
+        vertices4dReflected = Map[reflect[#, mirror1]&, vertices4d]//Simplify;
         (* vertices4dReflected = Map[reflect[reflect[#, mirror1], mirror2]&, vertices4d]; *)
 
         overallIntersection = Length[Intersection[Round[vertices4d, roundPrecision], Round[vertices4dReflected, roundPrecision]]];
-        
+
         If[overallIntersection != Length[vertices4d],
             Continue[]
         ];
 
         If[Length[vertexTally] == 1,
-            vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}];
-            (* vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}]; *)
+            vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}];
+            (* vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}]; *)
 
             intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
             nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
             totalIntersection = Total[Total[intersectionMatrix]];
 
-            If[nonZeroEntries < minNonZeroEntries, 
+            If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d], 
                 minNonZeroEntries = nonZeroEntries;
                 Print[{permIndex, perm, nonZeroEntries, totalIntersection}];
                 Print[intersectionMatrix];
@@ -245,8 +247,11 @@ If[tryPerms,
 ];
 
 (* 
-182: 40 non zero, {6,6,6,6}*10 
-
+random mirrors:
+2 mirrors: 182, 40 non zero, {6,6,6,6}*10 
+1 mirror: 25, 34, 24, 24, 6666*8
+mirrors around the first cage
+2887, {1, 6, 2, 3, 5, 4, 7, 8}, 10, 240
 *)
 
 
