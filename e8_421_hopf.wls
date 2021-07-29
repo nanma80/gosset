@@ -8,7 +8,7 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = False;
-tryPerms = True;
+tryPerms = False;
 roundPrecision = 0.000001;
 
 Needs["Quaternions`"];
@@ -185,7 +185,7 @@ Print[nonZeroEntries];
  *)
 If[tryPerms,
     minNonZeroEntries = 100000;
-    For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+    For[permIndex = 4, permIndex <= Length[permutations], permIndex ++,
         If[Mod[permIndex, 1] == 0, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -256,7 +256,7 @@ If[tryPerms,
                     intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
                     nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
                     totalIntersection = Total[Total[intersectionMatrix]];
-                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d], 
+                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d] || nonZeroEntries == 40 || nonZeroEntries == 34, 
                         minNonZeroEntries = nonZeroEntries;
                         Print[{permIndex, outerShellIndex, firstCageIndex, perm, nonZeroEntries, totalIntersection}];
                         Print[intersectionMatrix];
@@ -268,17 +268,32 @@ If[tryPerms,
 ];
 
 (* 
-random mirrors:
-2 mirrors: 182, 40 non zero, {6,6,6,6}*10 
-1 mirror: 25, 34, 24, 24, 6666*8
 mirrors around the first cage
-false: 2887, {1, 6, 2, 3, 5, 4, 7, 8}, 10, 240
+2 mirrors: {6, 1, 6}, etc
+{6, 1, 6, {1, 2, 3, 4, 5, 8, 7, 6}, 40, 240}
+{{6, 6, 0, 6, 0, 0, 0, 6, 0, 0}, {6, 6, 0, 6, 0, 6, 0, 0, 0, 0}, {0, 0, 6, 0, 6, 0, 0, 0, 6, 6}, {0, 6, 0, 6, 0, 6, 0, 6, 0, 0}, {0, 0, 6, 0, 6, 0, 6, 0, 0, 6}, {6, 0, 0, 6, 0, 6, 0, 6, 0, 0}, {0, 0, 6, 0, 6, 0, 6, 0, 6, 0}, {6, 6, 0, 0, 0, 6, 0, 6, 0, 0}, {0, 0, 0, 0, 6, 0, 6, 0, 6, 6}, {0, 0, 6, 0, 0, 0, 6, 0, 6, 6}}
+
+1 mirror: 
+{4, 2, 4, {1, 2, 3, 4, 5, 7, 8, 6}, 34, 240}
+{{6, 0, 6, 0, 6, 0, 6, 0, 0, 0}, {0, 24, 0, 0, 0, 0, 0, 0, 0, 0}, {6, 0, 6, 0, 6, 0, 6, 0, 0, 0}, {0, 0, 0, 6, 0, 6, 0, 6, 0, 6}, {6, 0, 6, 0, 6, 0, 6, 0, 0, 0}, {0, 0, 0, 6, 0, 6, 0, 6, 0, 6}, {6, 0, 6, 0, 6, 0, 6, 0, 0, 0}, {0, 0, 0, 6, 0, 6, 0, 6, 0, 6}, {0, 0, 0, 0, 0, 0, 0, 0, 24, 0}, {0, 0, 0, 6, 0, 6, 0, 6, 0, 6}}
+
 *)
 
 
-permIndex = 182;
-projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
+permIndex = 6;
+outerShellIndex = 1;
+firstCageIndex = 6;
 
+projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
+vertices4d = Map[projection8to4.# &, vertices]//Simplify;
+outerShell = Select[vertices4d, Norm[#] > 6&];
+v1 = outerShell[[outerShellIndex]];
+firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
+vTop = firstCage[[firstCageIndex]];
+
+(* Print[v1];
+Print[vTop];
+ *)
 (* vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
 edgeGroups4d = Map[projection8to4.# &, edgeGroups, {3}];
 faceGroups4d = Map[projection8to4.# &, faceGroups, {3}];
@@ -286,15 +301,19 @@ faceGroups4d = Map[projection8to4.# &, faceGroups, {3}];
 edgeCenterGroups4d = Table[Map[Total, edgeGroups4d[[k]]], {k, 1, Length[edgeGroups4d]}];
 faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}];
  *)
-projection4to3 = {
+
+(* projection4to3 = {
     {0, 0, 2 Sin[2 Pi/15], (1 + Sqrt[5]) Sin[Pi/15]},
     {1, -(1 + Sqrt[5]) Sin[Pi/30], 0, 0},
     Table[0, {k, 4}]
 };
+ *)
+(* projection4to3 = IdentityMatrix[4][[{1,2,3}]]; *)
+projection4to3 = RotationMatrix[{v1, {0, 0, 0, 1}}][[{1,2,3}]]//Simplify;
+vTop3d = projection4to3.vTop;
+rotation3d = RotationMatrix[{vTop3d, {0, 0, 1}}];
 
-projection4to3 = IdentityMatrix[4][[{1,2,3}]];
-
-projectionMatrix = projection4to3.projection8to4;
+projectionMatrix = rotation3d.projection4to3.projection8to4//N;
 
 vertexGroups3d = Map[projectionMatrix.# &, vertexGroups, {2}];
 edgeGroups3d = Map[projectionMatrix.# &, edgeGroups, {3}];
@@ -302,12 +321,12 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 
 (* viewPoint = {1, 0, phi}; *)
 (* viewPoint = {-1, 0, phi}; *)
-viewPoint = {0, -phi, -1};
+(* viewPoint = {0, -phi, -1}; *)
 (* viewPoint = {0, -phi, 1}; *)
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
-(* viewPoint = {0, 0, 10}; *)
-
+viewPoint = {0, 0, 10};
+(* viewPoint = {1.01, -0.99, 1} * 10; *)
 
 range = 6;
 thickness = 0.1;
