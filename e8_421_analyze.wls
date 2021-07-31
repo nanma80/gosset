@@ -163,8 +163,8 @@ permutations = Permutations[Range[8]];
 mostSymmetry = 0;
 mostSymmetryInfo = {};
 
-For[permIndex = 1, permIndex <= Length[permutations] && permIndex <= 10, permIndex ++,
-    If[Mod[permIndex, 100] == 1, Print[permIndex]];
+For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+    If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
     vertices4d = Map[newProjection.# &, vertices]//Simplify;
@@ -222,3 +222,9 @@ For[permIndex = 1, permIndex <= Length[permutations] && permIndex <= 10, permInd
 
 Print["Most symmetry achieved by:"];
 Print[mostSymmetryInfo];
+
+(* 
+{4, {1, 2, 3, 4, 5, 7, 8, 6}, 24}
+{6, {1, 2, 3, 4, 5, 8, 7, 6}, 40}
+{97, {1, 2, 3, 8, 4, 5, 6, 7}, 72}
+*)
