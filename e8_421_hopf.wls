@@ -98,6 +98,7 @@ getTriangularFaces[vertices_] := Module[
 ];
 
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
+getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
@@ -110,9 +111,9 @@ q2s = Map[getQ2, vertices];
 
 s3s = Map[getS3, q2s];
 
-Print[Tally[s4s]];
+(* Print[Tally[s4s]]; *)
 Print[Map[#[[2]]&, Tally[s4s]]//Tally];
-Print[Tally[s3s]];
+(* Print[Tally[s3s]]; *)
 Print[Map[#[[2]]&, Tally[s3s]]//Tally];
 
 s3GroupsMap = GroupBy[vertices, getS4[getComplexNumbers[#]]&];
@@ -185,7 +186,7 @@ Print[nonZeroEntries];
  *)
 If[tryPerms,
     minNonZeroEntries = 100000;
-    For[permIndex = 6, permIndex <= Length[permutations], permIndex ++,
+    For[permIndex = 5, permIndex <= Length[permutations], permIndex ++,
         If[Mod[permIndex, 1] == 0, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -221,7 +222,7 @@ If[tryPerms,
         If[Length[vCircleLR] != 2, Continue[]];
 
         mirror1 = vCircleMark - vCircleLR[[1]];
-        mirror2 = vCircleLR[[1]] - vCircleLR[[2]];
+        mirror2 = vCircleMark - vCircleLR[[2]];
 
         (* Print[{mirrorIndex, mirror1, mirror2}//N]; *)
         (* vertices4dReflected = Map[reflect[#, mirror1]&, vertices4d]//Simplify; *)
@@ -234,6 +235,9 @@ If[tryPerms,
         ];
 
         If[Length[vertexTally] == 1,
+            Print["Angle between mirror 1 and mirror 2:"];
+            Print[Sort[{180-getAngle[mirror1, mirror2], getAngle[mirror1, mirror2]}]];
+
             For[outerShellIndex = 1, outerShellIndex <= Length[outerShell], outerShellIndex++,
                 v1 = outerShell[[outerShellIndex]];
                 firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
@@ -248,7 +252,9 @@ If[tryPerms,
                     If[Length[vCircleLR] != 2, Continue[]];
 
                     mirror1 = vCircleMark - vCircleLR[[1]];
-                    mirror2 = vCircleLR[[1]] - vCircleLR[[2]];
+                    (* mirror2 = vCircleLR[[1]] - vCircleLR[[2]]; *)
+                    mirror2 = vCircleMark - vCircleLR[[2]];
+                    (* mirror2 = vCircleLR[[1]] - v1; *)
 
                     (* vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}]; *)
                     vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}];
@@ -256,8 +262,8 @@ If[tryPerms,
                     intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
                     nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
                     totalIntersection = Total[Total[intersectionMatrix]];
-                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d] 
-                    || nonZeroEntries == 40 || nonZeroEntries == 34, 
+                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d] ,
+                    (* || nonZeroEntries == 40 || nonZeroEntries == 34,  *)
                         minNonZeroEntries = nonZeroEntries;
                         Print[{permIndex, outerShellIndex, firstCageIndex, perm, nonZeroEntries, totalIntersection}];
                         Print[intersectionMatrix];
@@ -290,8 +296,8 @@ mirrors around the first cage
 
 
 permIndex = 6;
-outerShellIndex = 21;
-firstCageIndex = 2;
+outerShellIndex = 1;
+firstCageIndex = 6;
 
 projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
 vertices4d = Map[projection8to4.# &, vertices]//Simplify;
@@ -299,6 +305,7 @@ outerShell = Select[vertices4d, Norm[#] > 6&];
 v1 = outerShell[[outerShellIndex]];
 firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
 vTop = firstCage[[firstCageIndex]];
+vertexGroups4d = Map[projection8to4.# &, vertexGroups, {2}];
 
 (* Print[v1];
 Print[vTop];
@@ -335,10 +342,10 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
 (* viewPoint = {0, 0, 10}; *)
-viewPoint = {1.01, -0.99, 1} * 10;
+viewPoint = {1.01, -0.99, 0.5} * 10;
 
 range = 6;
-thickness = 0.1;
+thickness = 0.08;
 lighting = {{"Point", White, {10, -10, 10}}};
 
 graphElements = {};
@@ -355,13 +362,13 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
         AppendTo[graphElements, {
             Opacity[1],
             FaceForm[colors[[groupIndex]] ],
-            Cylinder[edgeGroups3d[[groupIndex]], thickness * 0.8]
+            Cylinder[edgeGroups3d[[groupIndex]], thickness * 0.8 * (1 + groupIndex * 0.01)]
         }]
     ];
 
-    If[showFaces,
+    If[showFaces && groupIndex <= 10,
         AppendTo[graphElements, {
-            Opacity[0.5],
+            Opacity[1],
             FaceForm[colors[[groupIndex]] ],
             Map[Polygon, faceGroups3d[[groupIndex]]]
         }]
