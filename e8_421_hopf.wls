@@ -186,7 +186,7 @@ Print[nonZeroEntries];
  *)
 If[tryPerms,
     minNonZeroEntries = 100000;
-    For[permIndex = 5, permIndex <= Length[permutations], permIndex ++,
+    For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIndex ++,
         If[Mod[permIndex, 1] == 0, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -198,6 +198,7 @@ If[tryPerms,
         (* faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGroups4d]}]; *)
 
         vertexTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, vertexGroups4d, {2}]]]]];
+        Print[vertexTally];
         (* edgeTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, edgeCenterGroups4d, {2}]]]]]; *)
         (* faceTally = Tally[Map[Sort[Tally[#]]&, Expand[FullSimplify[Map[Norm, faceCenterGroups4d, {2}]]]]]; *)
 
@@ -234,7 +235,8 @@ If[tryPerms,
             Continue[]
         ];
 
-        If[Length[vertexTally] == 1,
+
+        If[Length[vertexTally] == 1 || True,
             Print["Angle between mirror 1 and mirror 2:"];
             Print[Sort[{180-getAngle[mirror1, mirror2], getAngle[mirror1, mirror2]}]];
 
@@ -341,8 +343,8 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {0, -phi, 1}; *)
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
-(* viewPoint = {0, 0, 10}; *)
-viewPoint = {1.01, -0.99, 0.5} * 10;
+viewPoint = {0, 0, 10};
+(* viewPoint = {1.01, -0.99, 0.5} * 10; *)
 
 range = 6;
 thickness = 0.08;

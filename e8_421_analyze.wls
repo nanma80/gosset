@@ -163,7 +163,7 @@ permutations = Permutations[Range[8]];
 mostSymmetry = 0;
 mostSymmetryInfo = {};
 
-For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
+For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIndex ++,
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -210,6 +210,9 @@ For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
         ];
 
         If[isSymmetry, numSymmetry++];
+        If[isSymmetry, 
+            Print[(IdentityMatrix[4] - matrix)/2]
+        ];
     ];
 
     permInfo = {permIndex, perm, numSymmetry};
