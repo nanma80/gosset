@@ -210,8 +210,10 @@ For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIn
         ];
 
         If[isSymmetry, numSymmetry++];
-        If[isSymmetry, 
-            Print[(IdentityMatrix[4] - matrix)/2]
+        If[isSymmetry,
+            (* Print[Det[matrix]]; *)
+            Print[Eigenvalues[matrix]//N];
+            Print[Eigenvectors[matrix]//N];
         ];
     ];
 
@@ -228,6 +230,9 @@ Print[mostSymmetryInfo];
 
 (* 
 {4, {1, 2, 3, 4, 5, 7, 8, 6}, 24}
+4: all Det == 1
 {6, {1, 2, 3, 4, 5, 8, 7, 6}, 40}
+6: 20 symmetries Det == 1 and 20 Det == -1
 {97, {1, 2, 3, 8, 4, 5, 6, 7}, 72}
+97: all Det == 1
 *)
