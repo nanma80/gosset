@@ -162,7 +162,7 @@ h4Matrices = Get["data/h4_symmetries.wl"];
 permutations = Permutations[Range[8]];
 mostSymmetry = 0;
 mostSymmetryInfo = {};
-
+symmetryMatrices = {};
 For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIndex ++,
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
@@ -212,8 +212,10 @@ For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIn
         If[isSymmetry, numSymmetry++];
         If[isSymmetry,
             (* Print[Det[matrix]]; *)
-            Print[Eigenvalues[matrix]//N];
-            Print[Eigenvectors[matrix]//N];
+            (* Print[Eigenvalues[matrix]//Tally]; *)
+            (* Print[Eigenvectors[matrix]//N]; *)
+            Print[matrix];
+            AppendTo[symmetryMatrices, matrix];
         ];
     ];
 
@@ -227,6 +229,8 @@ For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIn
 
 Print["Most symmetry achieved by:"];
 Print[mostSymmetryInfo];
+Print[symmetryMatrices];
+Save["data/perm97_symmetries.wl", symmetryMatrices];
 
 (* 
 {4, {1, 2, 3, 4, 5, 7, 8, 6}, 24}

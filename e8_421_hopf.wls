@@ -99,6 +99,7 @@ getTriangularFaces[vertices_] := Module[
 
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
+symmetryMatrices = ["data/perm97_symmetries.wl"];
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
