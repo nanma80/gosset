@@ -99,7 +99,7 @@ getTriangularFaces[vertices_] := Module[
 
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
-symmetryMatrices = ["data/perm97_symmetries.wl"];
+symmetryMatrices = Get["data/perm97_symmetries.wl"];
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
@@ -213,6 +213,7 @@ If[tryPerms,
         vertices4d = Map[newProjection.# &, vertices]//Simplify;
         outerShell = Select[vertices4d, Norm[#] > 6&];
         v1 = outerShell[[1]];
+
         If[Length[outerShell] != 120, Continue[]];
         firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
         If[Length[firstCage] != 12, Continue[]];
@@ -228,7 +229,8 @@ If[tryPerms,
 
         (* Print[{mirrorIndex, mirror1, mirror2}//N]; *)
         (* vertices4dReflected = Map[reflect[#, mirror1]&, vertices4d]//Simplify; *)
-        vertices4dReflected = Map[reflect[reflect[#, mirror1], mirror2]&, vertices4d];
+        (* vertices4dReflected = Map[reflect[reflect[#, mirror1], mirror2]&, vertices4d]; *)
+        vertices4dReflected = Map[symmetryMatrices[[1]].# &, vertices4d];
 
         overallIntersection = Length[Intersection[Round[vertices4d, roundPrecision], Round[vertices4dReflected, roundPrecision]]];
 
@@ -261,6 +263,7 @@ If[tryPerms,
 
                     (* vertexGroups4dReflected = Map[ reflect[#, mirror1]&, vertexGroups4d, {2}]; *)
                     vertexGroups4dReflected = Map[ reflect[reflect[#, mirror1], mirror2]&, vertexGroups4d, {2}];
+                    (* vertexGroups4dReflected = Map[symmetryMatrices[[outerShellIndex]].# &, vertexGroups4d, {2}]; *)
 
                     intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
                     nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];

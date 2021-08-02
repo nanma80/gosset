@@ -10,6 +10,7 @@ showEdges = True;
 showFaces = False;
 tryPerms = True;
 roundPrecision = 0.000001;
+Use3d = False;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -157,22 +158,27 @@ projection8to4 = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
-h4Matrices = Get["data/h4_symmetries.wl"];
+h4Matrices = If[Use3d,
+    Get["data/h3_symmetries.wl"],
+    Get["data/h4_symmetries.wl"]
+];
 
 permutations = Permutations[Range[8]];
 mostSymmetry = 0;
 mostSymmetryInfo = {};
 symmetryMatrices = {};
-For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIndex ++,
+For[permIndex = 1, permIndex <= Length[permutations], permIndex ++,
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
+    If[Use3d,
+        newProjection = newProjection[[{1,2,3}]];
+    ];
     vertices4d = Map[newProjection.# &, vertices]//Simplify;
     
     (* test if all 240 vertices have H4 symmetry. By random sampling, it appears they always have *)
 (*     hasH4Symmetry = True;
-    For[i = 1, i <= 100, i++,
-        
+    For[i = 1, i <= 100, i++,        
         If[MemberQ[vertices4d, h4Matrices[[ RandomInteger[{1, Length[h4Matrices]}] ]].vertices4d[[ RandomInteger[{1, Length[vertices4d]}] ]]//Simplify ] == False, 
             hasH4Symmetry = False;
             Break[]
@@ -214,7 +220,7 @@ For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIn
             (* Print[Det[matrix]]; *)
             (* Print[Eigenvalues[matrix]//Tally]; *)
             (* Print[Eigenvectors[matrix]//N]; *)
-            Print[matrix];
+            (* Print[matrix]; *)
             AppendTo[symmetryMatrices, matrix];
         ];
     ];
@@ -230,7 +236,7 @@ For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIn
 Print["Most symmetry achieved by:"];
 Print[mostSymmetryInfo];
 Print[symmetryMatrices];
-Save["data/perm97_symmetries.wl", symmetryMatrices];
+(* Save["data/perm97_symmetries.wl", symmetryMatrices]; *)
 
 (* 
 {4, {1, 2, 3, 4, 5, 7, 8, 6}, 24}
