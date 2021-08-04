@@ -187,7 +187,7 @@ Print[nonZeroEntries];
  *)
 If[tryPerms,
     minNonZeroEntries = 100000;
-    For[permIndex = 97, permIndex <= Length[permutations] && permIndex <= 97, permIndex ++,
+    For[permIndex = 112, permIndex <= Length[permutations] && permIndex <= 112, permIndex ++,
         If[Mod[permIndex, 1] == 0, Print[{permIndex, Length[permutations]}]];
         perm = permutations[[permIndex]];
         newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -301,7 +301,7 @@ mirrors around the first cage
 *)
 
 
-permIndex = 6;
+permIndex = 112;
 outerShellIndex = 1;
 firstCageIndex = 6;
 
@@ -347,8 +347,9 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {0, -phi, 1}; *)
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
-viewPoint = {0, 0, 10};
+(* viewPoint = {0, 0, 10}; *)
 (* viewPoint = {1.01, -0.99, 0.5} * 10; *)
+viewPoint = {1.0, -1, 0.5} * 10;
 
 range = 6;
 thickness = 0.08;
