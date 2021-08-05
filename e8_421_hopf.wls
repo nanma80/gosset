@@ -243,7 +243,7 @@ If[tryPerms,
             Print["Angle between mirror 1 and mirror 2:"];
             Print[Sort[{180-getAngle[mirror1, mirror2], getAngle[mirror1, mirror2]}]];
 
-            For[outerShellIndex = 1, outerShellIndex <= Length[outerShell], outerShellIndex++,
+            For[outerShellIndex = 19, outerShellIndex <= Length[outerShell] && outerShellIndex <= 19, outerShellIndex++,
                 v1 = outerShell[[outerShellIndex]];
                 firstCage = Select[outerShell, (#.v1 > 33 && #.v1 < 34)&];
                 If[Length[firstCage] != 12, Continue[]];
@@ -268,10 +268,10 @@ If[tryPerms,
                     intersectionMatrix = Table[Length[Intersection[Round[vertexGroups4d[[i]], roundPrecision], Round[vertexGroups4dReflected[[j]], roundPrecision ]]], {i, Length[vertexGroups4d]}, {j, Length[vertexGroups4dReflected]}];
                     nonZeroEntries = Total[Total[Map[If[#!=0, 1, 0] &, intersectionMatrix, {2}]]];
                     totalIntersection = Total[Total[intersectionMatrix]];
-                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d] ,
+                    If[nonZeroEntries < minNonZeroEntries || nonZeroEntries == Length[vertexGroups4d] || True,
                     (* || nonZeroEntries == 40 || nonZeroEntries == 34,  *)
                         minNonZeroEntries = nonZeroEntries;
-                        Print[{permIndex, outerShellIndex, firstCageIndex, perm, nonZeroEntries, totalIntersection}];
+                        Print[{permIndex, outerShellIndex, firstCageIndex, perm, nonZeroEntries, totalIntersection, v1//N}];
                         Print[intersectionMatrix];
                     ];
                 ];
@@ -302,8 +302,10 @@ mirrors around the first cage
 
 
 permIndex = 112;
-outerShellIndex = 1;
+outerShellIndex = 19;
 firstCageIndex = 6;
+(* 112, 19, 4 or 5, 6 is almost symmetrical from top *)
+
 
 projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
 vertices4d = Map[projection8to4.# &, vertices]//Simplify;

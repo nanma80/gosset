@@ -10,7 +10,7 @@ showEdges = True;
 showFaces = False;
 tryPerms = True;
 roundPrecision = 0.000001;
-Use3d = False;
+Use3d = True;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -170,11 +170,11 @@ symmetryMatrices = {};
 bestPerms = {};
 permIndexCandidates = {88, 112, 198, 222, 314, 338, 440, 464, 499, 513, 552, 575, 619, 633, 672, 695, 815, 839, 934, 958, 1045, 1069, 1172, 1196, 1217, 1236, 1262, 1278, 1337, 1356, 1382, 1398, 1524, 1548, 1640, 1664, 1768, 1792, 1876, 1900, 1923, 1967, 1987, 2014, 2043, 2087, 2107, 2134, 2252, 2276, 2367, 2391, 2495, 2519, 2616, 2640, 2646, 2680, 2705, 2730, 2766, 2800, 2825, 2850, 2974, 2998};
 
-For[permIndexIndex = 1, permIndexIndex <= Length[permIndexCandidates], permIndexIndex ++,
-    permIndex = permIndexCandidates[[permIndexIndex]];
-    If[Mod[permIndexIndex, 10] == 1, Print[{permIndex, mostSymmetryInfo}]];
-(* For[permIndex = 1, permIndex <= Length[permutations] && permIndex <= 3000, permIndex ++, *)
-    (* If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]]; *)
+(* For[permIndexIndex = 1, permIndexIndex <= Length[permIndexCandidates], permIndexIndex ++, *)
+    (* permIndex = permIndexCandidates[[permIndexIndex]]; *)
+    (* If[Mod[permIndexIndex, 10] == 1, Print[{permIndex, mostSymmetryInfo}]]; *)
+For[permIndex = 112, permIndex <= Length[permutations] && permIndex <= 112, permIndex ++,
+    If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
     If[Use3d,
@@ -228,11 +228,11 @@ For[permIndexIndex = 1, permIndexIndex <= Length[permIndexCandidates], permIndex
 
         If[isSymmetry, numSymmetry++];
         If[isSymmetry,
-            (* Print[Det[matrix]]; *)
+            Print[Det[matrix]];
             (* Print[Eigenvalues[matrix]//Tally]; *)
             (* Print[Eigenvectors[matrix]//N]; *)
             (* Print[matrix]; *)
-            (* AppendTo[symmetryMatrices, matrix]; *)
+            AppendTo[symmetryMatrices, matrix];
         ];
     ];
 
@@ -248,8 +248,9 @@ For[permIndexIndex = 1, permIndexIndex <= Length[permIndexCandidates], permIndex
 Print["Most symmetry achieved by:"];
 Print[mostSymmetryInfo];
 Print[bestPerms];
-(* Print[symmetryMatrices]; *)
+Print[symmetryMatrices];
 (* Save["data/perm97_symmetries.wl", symmetryMatrices]; *)
+Save["data/perm112_h3_symmetries.wl", symmetryMatrices];
 
 (* 
 H4:
