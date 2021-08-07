@@ -10,7 +10,7 @@ showEdges = True;
 showFaces = False;
 tryPerms = True;
 roundPrecision = 0.000001;
-Use3d = True;
+Use3d = False;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -42,6 +42,28 @@ get421Vertices[altMode_] := Module[
     vertices = {};
     vertices = Join[vertices, Union[Flatten[Permutations/@Map[Join[#, {0, 0, 0, 0, 0, 0}]& , cubeVertices[2] * 2], 1]]];
     vertices = Join[vertices, demicubeVertices[8, altMode]];
+    vertices
+];
+
+
+get241Vertices[] := Module[
+    {vertices, templates, i, cube8, class3},
+    vertices = {};
+    vertices = Join[vertices, orthoplexVertices[8] * 4];
+    vertices = Join[vertices, Union[Flatten[Permutations/@Map[Join[#, {0, 0, 0, 0}]& , cubeVertices[4] * 2], 1]]];
+    templates = Permutations[{3, 1, 1, 1, 1, 1, 1, 1}];
+
+    cube8 = cubeVertices[8];
+    class3 = {};
+    For[i = 1, i <= Length[templates], i++,
+        For[j = 1, j <= Length[cube8], j++,
+            If[Apply[Times, cube8[[j]]] == -1,
+                newVertex = Table[templates[[i]][[k]] * cube8[[j]][[k]], {k, 8}];
+                AppendTo[class3, newVertex]
+            ];
+        ];
+    ];
+    vertices = Join[vertices, class3];
     vertices
 ];
 
@@ -101,7 +123,8 @@ getTriangularFaces[vertices_] := Module[
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
 
-vertices = get421Vertices[True];
+vertices = get241Vertices[];
+(* 2160 vertices *)
 vertices24Cell = get24CellVertices[];
 
 complexes = Map[getComplexNumbers, vertices];
@@ -113,13 +136,17 @@ q2s = Map[getQ2, vertices];
 s3s = Map[getS3, q2s];
 
 (* Print[Tally[s4s]]; *)
-(* {{{8, 0, 0, 0, 0}, 24}, {{0, 8, 0, 0, 0}, 24}, {{0, 0, 8, 0, 0}, 24}, {{0, 0, 0, 8, 0}, 24}, {{0, 0, 0, 0, 8}, 24}, {{0, 0, 0, 0, -8}, 24}, {{0, 0, 0, -8, 0}, 24}, {{0, 0, -8, 0, 0}, 24}, {{0, -8, 0, 0, 0}, 24}, {{-8, 0, 0, 0, 0}, 24}} *)
+(* 
+{16, 0, 0, 0, 0} all +/- all perms. Count: 5 * 2 = 10
+{8, 8, 8, 8, 0} all +/- all perms. Count: 5 * 2^4 = 80
+Total: 90
+ *)
 Print[Map[#[[2]]&, Tally[s4s]]//Tally];
-(* {{24, 10}} *)
+(* {{24, 90}} *)
 
 (* Print[Tally[s3s]]; *)
 Print[Map[#[[2]]&, Tally[s3s]]//Tally];
-(* {{48, 1}, {24, 8}} *)
+(* {{48, 33}, {24, 24}} *)
 
 s3GroupsMap = GroupBy[vertices, getS4[getComplexNumbers[#]]&];
 uniqueS4s = Keys[s3GroupsMap];
@@ -150,7 +177,9 @@ For[i = 1, i <= Length[vertexGroups], i++,
         ];
     bases = g1[[orthogonalIndices[[1]]]];
     generatedG1 = vertices24Cell.bases;
-    Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}]; *)
+    Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}];
+ *)
+    (* {24, 24, 24, 48} *)
 ];
 
 phi = (Sqrt[5] + 1)/2;
@@ -177,7 +206,7 @@ permIndexCandidates = {88, 112, 198, 222, 314, 338, 440, 464, 499, 513, 552, 575
 (* For[permIndexIndex = 1, permIndexIndex <= Length[permIndexCandidates], permIndexIndex ++, *)
     (* permIndex = permIndexCandidates[[permIndexIndex]]; *)
     (* If[Mod[permIndexIndex, 10] == 1, Print[{permIndex, mostSymmetryInfo}]]; *)
-For[permIndex = 112, permIndex <= Length[permutations] && permIndex <= 112, permIndex ++,
+For[permIndex = 1, permIndex <= Length[permutations] && permIndex <= 1000, permIndex ++,
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -232,11 +261,11 @@ For[permIndex = 112, permIndex <= Length[permutations] && permIndex <= 112, perm
 
         If[isSymmetry, numSymmetry++];
         If[isSymmetry,
-            Print[Det[matrix]];
+            (* Print[Det[matrix]]; *)
             (* Print[Eigenvalues[matrix]//Tally]; *)
             (* Print[Eigenvectors[matrix]//N]; *)
             (* Print[matrix]; *)
-            AppendTo[symmetryMatrices, matrix];
+            (* AppendTo[symmetryMatrices, matrix]; *)
         ];
     ];
 
@@ -252,28 +281,11 @@ For[permIndex = 112, permIndex <= Length[permutations] && permIndex <= 112, perm
 Print["Most symmetry achieved by:"];
 Print[mostSymmetryInfo];
 Print[bestPerms];
-Print[symmetryMatrices];
+(* Print[symmetryMatrices]; *)
 (* Save["data/perm97_symmetries.wl", symmetryMatrices]; *)
-Save["data/perm112_h3_symmetries.wl", symmetryMatrices];
+(* Save["data/perm112_h3_symmetries.wl", symmetryMatrices]; *)
 
 (* 
-H4:
-{4, {1, 2, 3, 4, 5, 7, 8, 6}, 24}
-4: all Det == 1
-{6, {1, 2, 3, 4, 5, 8, 7, 6}, 40}
-6: 20 symmetries Det == 1 and 20 Det == -1
-{97, {1, 2, 3, 8, 4, 5, 6, 7}, 72}
-97: all Det == 1
+2160 vertices of 2_41 are partitioned into 90 24-cells. 
 
-H3:
-
-{1, {1, 2, 3, 4, 5, 6, 7, 8}, 2}
-{4, {1, 2, 3, 4, 5, 7, 8, 6}, 4}
-{73, {1, 2, 3, 7, 4, 5, 6, 8}, 6}
-{88, {1, 2, 3, 7, 6, 5, 8, 4}, 12}
-
-{88, 112, 198, 222, 314, 338, 440, 464, 499, 513, 552, 575, 619, 633, 672, 695, 815, 839, 934, 958, 1045, 1069, 1172, 1196, 1217, 1236, 1262, 1278, 1337, 1356, 1382, 1398, 1524, 1548, 1640, 1664, 1768, 1792, 1876, 1900, 1923, 1967, 1987, 2014, 2043, 2087, 2107, 2134, 2252, 2276, 2367, 2391, 2495, 2519, 2616, 2640, 2646, 2680, 2705, 2730, 2766, 2800, 2825, 2850, 2974, 2998}
-
-Common permIndex achieving 72 from H4 and also 12 from H3: 
-{112, 222, 314, 440, 552, 575, 619, 633, 839, 934, 1045, 1196, 1236, 1262, 1337, 1398, 1548, 1640, 1792, 1876, 1967, 2014, 2043, 2107, 2252, 2367, 2519, 2640, 2646, 2680, 2825, 2850, 2974}
 *)
