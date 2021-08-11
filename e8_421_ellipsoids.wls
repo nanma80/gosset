@@ -10,7 +10,7 @@ showEdges = True;
 showFaces = False;
 tryPerms = True;
 roundPrecision = 0.000001;
-Use3d = True;
+Use3d = False;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -136,6 +136,31 @@ For[i = 1, i <= Length[vertexGroups], i++,
     faceIndices = getTriangularFaces[g1];
     faces = Map[g1[[#]]&, faceIndices];
     AppendTo[faceGroups, faces];
+
+    orthogonalIndices =
+        Select[Subsets[Range[Length[g1]], {4}], 
+            Simplify[g1[[#[[1]]]].g1[[#[[2]]]]] == 0
+            && Simplify[g1[[#[[1]]]].g1[[#[[3]]]]] == 0
+            && Simplify[g1[[#[[1]]]].g1[[#[[4]]]]] == 0
+            && Simplify[g1[[#[[2]]]].g1[[#[[3]]]]] == 0
+            && Simplify[g1[[#[[2]]]].g1[[#[[4]]]]] == 0
+            && Simplify[g1[[#[[3]]]].g1[[#[[4]]]]] == 0 &
+        ];
+    bases = g1[[orthogonalIndices[[1]]]];
+    generatedG1 = vertices24Cell.bases;
+    (* Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}]; *)
+    Print[{i, orthogonalIndices[[1]]}];
+    (* {1, {1, 6, 11, 12}}
+    {2, {1, 2, 3, 4}}
+    {3, {1, 2, 3, 4}}
+    {4, {1, 2, 3, 4}}
+    {5, {1, 2, 3, 4}}
+    {6, {1, 2, 3, 4}}
+    {7, {1, 2, 3, 4}}
+    {8, {1, 2, 3, 4}}
+    {9, {1, 2, 3, 4}}
+    {10, {1, 6, 11, 12}}
+ *)
 ];
 
 phi = (Sqrt[5] + 1)/2;
@@ -160,7 +185,7 @@ bestPerms = {};
 
 (* For[permIndex = 1, permIndex <= Length[permutations] && permIndex <= 1, permIndex ++, *)
 
-permIndex = 1;
+permIndex = 112;
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
     newProjection = Transpose[Transpose[projection8to4][[perm]]];
@@ -171,17 +196,109 @@ permIndex = 1;
     
     vertexGroups4d = Map[newProjection.# &, vertexGroups, {2}]//Simplify//Expand;
 
+getRow[v4_] := {v4[[1]] v4[[1]], v4[[2]] v4[[2]], v4[[3]] v4[[3]], v4[[4]] v4[[4]], v4[[1]] v4[[2]], v4[[1]] v4[[3]], v4[[1]] v4[[4]], v4[[2]] v4[[3]], v4[[2]] v4[[4]], v4[[3]] v4[[4]], 1};
+
+groupIndex = 3;
+quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
+Print[MatrixRank[quadMatrix]];
+
+Table[
+    MatrixRank[
+        Map[getRow, vertexGroups4d[[k]]]
+    ],
+    {k, 1, Length[vertexGroups4d]}
+]
+(* {7, 7, 10, 10, 7, 7, 10, 10, 7, 7} for permIndex=1
+all 10 for 112
+*)
+
+ellipsoidEquation[v4_, coefs_] := coefs[[1]] v4[[1]] v4[[1]] + coefs[[2]] v4[[2]] v4[[2]] + coefs[[3]] v4[[3]] v4[[3]] + coefs[[4]] v4[[4]] v4[[4]] + coefs[[5]] v4[[1]] v4[[2]] + coefs[[6]] v4[[1]] v4[[3]] + coefs[[7]] v4[[1]] v4[[4]] + coefs[[8]] v4[[2]] v4[[3]] + coefs[[9]] v4[[2]] v4[[4]] + coefs[[10]] v4[[3]] v4[[4]] + coefs[[11]];
+
+allCoefs = {};
+
+(* LinearSolve[quadMatrix, Table[0, {k, 24}]] *)
+
+For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
+    quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
+    coefs = NullSpace[quadMatrix][[1]]//Simplify;
+    coefs = -coefs/coefs[[11]];
+    Print[{groupIndex, coefs}];
+    AppendTo[allCoefs, coefs];
+];
+
+For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
+    coefs = allCoefs[[groupIndex]];
+
+    symMatrix = {
+        {coefs[[1]], coefs[[5]]/2, coefs[[6]]/2, coefs[[7]]/2},
+        {coefs[[5]]/2, coefs[[2]], coefs[[8]]/2, coefs[[9]]/2},
+        {coefs[[6]]/2, coefs[[8]]/2, coefs[[3]], coefs[[10]]/2},
+        {coefs[[7]]/2, coefs[[9]]/2, coefs[[10]]/2, coefs[[4]]}
+    };
+
+    Print[{groupIndex, Eigenvalues[symMatrix]//N}];
+    Print[{groupIndex, Eigenvectors[symMatrix]//N}];
+];
+
+(* 
+{1, {0.327254, 0.327254, 0.0238729, 0.0238729}}
+{1, {{0., 0., 0., 1.}, {0., -0.381966, 1., 0.}, {0., 2.61803, 1., 0.}, {1., 0., 0., 0.}}}
+{2, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{2, {{-0.381966, -1.07047, 0., 1.}, {-1.07047, -0.381966, 1., 0.}, {-0.381966, 1.07047, 0., 1.}, {1.07047, -0.381966, 1., 0.}}}
+{3, {0.0625, 0.0625, 0.0182373, 0.0182373}}
+{3, {{0., 0., 0., 1.}, {0., -0.381966, 1., 0.}, {0., 2.61803, 1., 0.}, {1., 0., 0., 0.}}}
+{4, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{4, {{-0.937781, -0.402191, 0., 1.}, {-0.402191, 0.363738, 1., 0.}, {0.723332, 0.799801, 0., 1.}, {0.799801, -1.86488, 1., 0.}}}
+{5, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{5, {{-0.937781, 0.402191, 0., 1.}, {0.402191, 0.363738, 1., 0.}, {0.723332, -0.799801, 0., 1.}, {-0.799801, -1.86488, 1., 0.}}}
+{6, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{6, {{0.723332, -0.799801, 0., 1.}, {-0.799801, -1.86488, 1., 0.}, {-0.937781, 0.402191, 0., 1.}, {0.402191, 0.363738, 1., 0.}}}
+{7, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{7, {{0.723332, 0.799801, 0., 1.}, {0.799801, -1.86488, 1., 0.}, {-0.937781, -0.402191, 0., 1.}, {-0.402191, 0.363738, 1., 0.}}}
+{8, {0.327254, 0.327254, 0.0238729, 0.0238729}}
+{8, {{0., 2.61803, 1., 0.}, {1., 0., 0., 0.}, {0., 0., 0., 1.}, {0., -0.381966, 1., 0.}}}
+{9, {0.153277, 0.153277, 0.0194687, 0.0194687}}
+{9, {{-0.381966, 1.07047, 0., 1.}, {1.07047, -0.381966, 1., 0.}, {-0.381966, -1.07047, 0., 1.}, {-1.07047, -0.381966, 1., 0.}}}
+{10, {0.0625, 0.0625, 0.0182373, 0.0182373}}
+{10, {{0., 2.61803, 1., 0.}, {1., 0., 0., 0.}, {0., 0., 0., 1.}, {0., -0.381966, 1., 0.}}}
+ *)
+
+(* groupIndex = 2;
+quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
+coefs = NullSpace[quadMatrix][[1]]//Simplify
+quadMatrix.coefs//Simplify
+
+
+checksum = Table[ellipsoidEquation[vertexGroups4d[[groupIndex]][[k]], coefs], {k, 1, 24}];
+checksum//Simplify
+
+
+
+groupIndex = 2;
+sol = {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11}/.Solve[
+    Table[ellipsoidEquation[ vertexGroups4d[[groupIndex]][[k]], {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11}] == 0, {k, 24}],
+    {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11}
+]
+coefs = sol[[1]];
+
+Table[ellipsoidEquation[vertexGroups4d[[groupIndex]][[k]], coefs], {k, 1, 24}]//N
+
+
+ellipsoidEquation[ vertexGroups4d[[1]][[1]], {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10}]
+
 ellipsoidEquation[v3_, coefs_] := coefs[[1]] v3[[1]] v3[[1]] + coefs[[2]] v3[[2]] v3[[2]] + coefs[[3]] v3[[3]] v3[[3]] + coefs[[4]] v3[[1]] v3[[2]] + coefs[[5]] v3[[1]] v3[[3]] + coefs[[6]] v3[[2]] v3[[3]] + coefs[[7]] v3[[1]] + coefs[[8]] v3[[2]] + coefs[[9]] v3[[3]];
+
 
 sols = Table[
         Solve[
-            Table[ellipsoidEquation[ vertexGroups4d[[i]][[k]], {x1, x2, x3, x4, x5, x6}] == 1, {k, 6}],
-            {x1, x2, x3, x4, x5, x6}
-        ],
+            Apply[And,
+                Table[ellipsoidEquation[ vertexGroups4d[[i]][[k]], {x1, x2, x3, x4, x5, x6}] == 1, {k, 6}],
+                    {x1, x2, x3, x4, x5, x6}
+                ]
+            ],
         {i, 1, Length[vertexGroups4d]}
     ];
 
-ellipsoidEquation[{x,y,z}, {x1, x2, x3, x4, x5, x6}]/.sols[[2]][[1]]/.{x2->0, x5->0}
 
 sol = {x1, x2, x3, x4, x5, x6, x7, x8, x9}/.Solve[
     Table[ellipsoidEquation[ vertexGroups4d[[1]][[k]], {x1, x2, x3, x4, x5, x6, x7, x8, x9}] == 1, {k, 10}],
@@ -189,8 +306,18 @@ sol = {x1, x2, x3, x4, x5, x6, x7, x8, x9}/.Solve[
 ]
 coefs = sol[[1]]/.{x1->0, x5->0};
 
-Table[ellipsoidEquation[vertexGroups4d[[1]][[k]], coefs], {k, 1, 24}]//N
+ellipsoidEquation[v3_, coefs_] := coefs[[1]] v3[[1]] v3[[1]] + coefs[[2]] v3[[2]] v3[[2]] + coefs[[3]] v3[[3]] v3[[3]] + coefs[[4]] v3[[1]] v3[[2]] + coefs[[5]] v3[[1]] v3[[3]] + coefs[[6]] v3[[2]] v3[[3]];
 
+sol = {x1, x2, x3, x4, x5, x6}/.Reduce[Apply[And, 
+    Table[ellipsoidEquation[ vertexGroups4d[[2]][[k]], {x1, x2, x3, x4, x5, x6}] == 1//Simplify, {k, 10}]
+    ],
+    {x1, x2, x3, x4, x5, x6}
+]
+
+coefs = sol[[1]]
+
+Table[ellipsoidEquation[vertexGroups4d[[2]][[k]], coefs], {k, 1, 24}]//N
+ *)
 (* Out[131]= {1., 1., 1., 1., 1., 1., 0.381966, 0.381966, 3.61803, 3.61803, 2.61803, 1.38197, 1.38197, 2.61803, 3.61803, 3.61803, 0.381966, 0.381966, 1., 1., 1., 1., 1., 1.} *)
 
 (* ]; *)
