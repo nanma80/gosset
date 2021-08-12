@@ -137,7 +137,7 @@ For[i = 1, i <= Length[vertexGroups], i++,
     faces = Map[g1[[#]]&, faceIndices];
     AppendTo[faceGroups, faces];
 
-    orthogonalIndices =
+(*     orthogonalIndices =
         Select[Subsets[Range[Length[g1]], {4}], 
             Simplify[g1[[#[[1]]]].g1[[#[[2]]]]] == 0
             && Simplify[g1[[#[[1]]]].g1[[#[[3]]]]] == 0
@@ -148,9 +148,9 @@ For[i = 1, i <= Length[vertexGroups], i++,
         ];
     bases = g1[[orthogonalIndices[[1]]]];
     generatedG1 = vertices24Cell.bases;
-    (* Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}]; *)
+    Print[{Length[g1], Length[generatedG1], Length[Union[g1, generatedG1]], Length[orthogonalIndices]}];
     Print[{i, orthogonalIndices[[1]]}];
-    (* {1, {1, 6, 11, 12}}
+ *)    (* {1, {1, 6, 11, 12}}
     {2, {1, 2, 3, 4}}
     {3, {1, 2, 3, 4}}
     {4, {1, 2, 3, 4}}
@@ -172,6 +172,15 @@ projection8to4 = {
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
 
+rotation4d = {
+    {1, 0, 0, 0},
+    {0, phi, 1/phi, 0}/Sqrt[3],
+    {0, -1/phi, phi, 0}/Sqrt[3],
+    {0, 0, 0, 1}
+};
+
+projection8to4AndRotation = rotation4d.projection8to4;
+
 h4Matrices = If[Use3d,
     Get["data/h3_symmetries.wl"],
     Get["data/h4_symmetries.wl"]
@@ -188,7 +197,7 @@ bestPerms = {};
 permIndex = 112;
     If[Mod[permIndex, 100] == 1, Print[{permIndex, mostSymmetryInfo}]];
     perm = permutations[[permIndex]];
-    newProjection = Transpose[Transpose[projection8to4][[perm]]];
+    newProjection = Transpose[Transpose[projection8to4AndRotation][[perm]]];
     If[Use3d,
         newProjection = newProjection[[{1,2,3}]];
     ];
@@ -202,12 +211,15 @@ groupIndex = 3;
 quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
 Print[MatrixRank[quadMatrix]];
 
-Table[
+matrixRanks = Table[
     MatrixRank[
         Map[getRow, vertexGroups4d[[k]]]
     ],
     {k, 1, Length[vertexGroups4d]}
-]
+];
+
+Print[matrixRanks];
+
 (* {7, 7, 10, 10, 7, 7, 10, 10, 7, 7} for permIndex=1
 all 10 for 112
 *)
@@ -218,7 +230,8 @@ allCoefs = {};
 
 (* LinearSolve[quadMatrix, Table[0, {k, 24}]] *)
 
-For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
+groupIndexLimit = 10;
+For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupIndexLimit, groupIndex++,
     quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
     coefs = NullSpace[quadMatrix][[1]]//Simplify;
     coefs = -coefs/coefs[[11]];
@@ -226,7 +239,7 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
     AppendTo[allCoefs, coefs];
 ];
 
-For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
+For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupIndexLimit, groupIndex++,
     coefs = allCoefs[[groupIndex]];
 
     symMatrix = {
@@ -241,6 +254,7 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
 ];
 
 (* 
+Before 4D rotation
 {1, {0.327254, 0.327254, 0.0238729, 0.0238729}}
 {1, {{0., 0., 0., 1.}, {0., -0.381966, 1., 0.}, {0., 2.61803, 1., 0.}, {1., 0., 0., 0.}}}
 {2, {0.153277, 0.153277, 0.0194687, 0.0194687}}
@@ -261,6 +275,42 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d], groupIndex++,
 {9, {{-0.381966, 1.07047, 0., 1.}, {1.07047, -0.381966, 1., 0.}, {-0.381966, -1.07047, 0., 1.}, {-1.07047, -0.381966, 1., 0.}}}
 {10, {0.0625, 0.0625, 0.0182373, 0.0182373}}
 {10, {{0., 2.61803, 1., 0.}, {1., 0., 0., 0.}, {0., 0., 0., 1.}, {0., -0.381966, 1., 0.}}}
+
+After 4D rotation:
+{1, {0.32725424859373686, 0.32725424859373686, 0.023872875703131572, 0.023872875703131572}}
+{1, {{0., 0., 0., 1.}, {0., 0., 1., 0.}, {0., 1., 0., 0.}, {1., 0., 0., 0.}}}
+
+{8, {0.3272542485937369, 0.3272542485937369, 0.023872875703131572, 0.023872875703131572}}
+{8, {{0., 1., 0., 0.}, {1., 0., 0., 0.}, {0., 0., 0., 1.}, {0., 0., 1., 0.}}}
+
+{3, {0.0625, 0.0625, 0.01823725421878941, 0.01823725421878941}}
+{3, {{0., 0., 0., 1.}, {0., 0., 1., 0.}, {0., 1., 0., 0.}, {1., 0., 0., 0.}}}
+
+{10, {0.0625, 0.0625, 0.01823725421878941, 0.01823725421878941}}
+{10, {{0., 1., 0., 0.}, {1., 0., 0., 0.}, {0., 0., 0., 1.}, {0., 0., 1., 0.}}}
+
+{2, {0.15327701753558592, 0.15327701753558592, 0.019468733870677206, 0.019468733870677206}}
+{2, {{0., -1., 0., 1.}, {-1., 0., 1., 0.}, {0., 1., 0., 1.}, {1., 0., 1., 0.}}}
+
+{9, {0.15327701753558592, 0.15327701753558592, 0.019468733870677206, 0.019468733870677206}}
+{9, {{0., 1., 0., 1.}, {1., 0., 1., 0.}, {0., -1., 0., 1.}, {-1., 0., 1., 0.}}}
+
+
+{4, {0.15327701753558592, 0.15327701753558592, 0.01946873387067721, 0.01946873387067721}}
+{4, {{-0.8660254037844386, -0.5, 0., 1.}, {-0.5, 0.8660254037844386, 1., 0.}, {0.8660254037844386, 0.5, 0., 1.}, {0.5, -0.8660254037844386, 1., 0.}}}
+
+{5, {0.15327701753558592, 0.15327701753558592, 0.01946873387067721, 0.01946873387067721}}
+{5, {{-0.8660254037844386, 0.5, 0., 1.}, {0.5, 0.8660254037844386, 1., 0.}, {0.8660254037844386, -0.5, 0., 1.}, {-0.5, -0.8660254037844386, 1., 0.}}}
+
+{6, {0.15327701753558592, 0.15327701753558592, 0.019468733870677223, 0.019468733870677223}}
+{6, {{0.8660254037844387, -0.5, 0., 1.}, {-0.5, -0.8660254037844386, 1., 0.}, {-0.8660254037844387, 0.5, 0., 1.}, {0.5, 0.8660254037844386, 1., 0.}}}
+
+{7, {0.15327701753558592, 0.15327701753558592, 0.019468733870677223, 0.019468733870677223}}
+{7, {{0.8660254037844387, 0.5, 0., 1.}, {0.5, -0.8660254037844386, 1., 0.}, {-0.8660254037844387, -0.5, 0., 1.}, {-0.5, 0.8660254037844386, 1., 0.}}}
+
+
+
+
  *)
 
 (* groupIndex = 2;
