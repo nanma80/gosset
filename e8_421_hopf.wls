@@ -7,7 +7,7 @@ imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
 showEdges = True;
-showFaces = False;
+showFaces = True;
 tryPerms = False;
 roundPrecision = 0.000001;
 
@@ -15,7 +15,7 @@ Needs["Quaternions`"];
 Needs["POVRayRender`"];
 ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pvengine64.exe"];
 
-colors = {Red, Blue, Green, Yellow, Magenta, Cyan, Brown, Orange, Pink, Purple};
+colors = {Red, Blue, Green, Yellow, Magenta, Cyan, Brown, Orange, Pink, Gray};
 reflect[point_, mirror_] := point - 2 * (point.mirror)/(mirror.mirror)*mirror;
 cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
 
@@ -157,6 +157,16 @@ projection8to4 = {
     {0, 0, 1, -1, phi, phi , 0, 0},
     {0, 0, 0, 0, 0, 0, phi+1, phi-1}
 };
+
+rotation4d = {
+    {1, 0, 0, 0},
+    {0, phi, 1/phi, 0}/Sqrt[3],
+    {0, -1/phi, phi, 0}/Sqrt[3],
+    {0, 0, 0, 1}
+};
+
+projection8to4 = rotation4d.projection8to4;
+
 
 permutations = Permutations[Range[8]];
 (* permIndex = 12;
@@ -306,7 +316,6 @@ outerShellIndex = 19;
 firstCageIndex = 6;
 (* 112, 19, 4 or 5, 6 is almost symmetrical from top *)
 
-
 projection8to4 = Transpose[Transpose[projection8to4][[permutations[[permIndex]]]]];
 vertices4d = Map[projection8to4.# &, vertices]//Simplify;
 outerShell = Select[vertices4d, Norm[#] > 6&];
@@ -332,10 +341,11 @@ faceCenterGroups4d = Table[Map[Total, faceGroups4d[[k]]], {k, 1, Length[faceGrou
     Table[0, {k, 4}]
 };
  *)
-(* projection4to3 = IdentityMatrix[4][[{1,2,3}]]; *)
-projection4to3 = RotationMatrix[{v1, {0, 0, 0, 1}}][[{1,2,3}]]//Simplify;
+projection4to3 = IdentityMatrix[4][[{1,2,3}]];
+(* projection4to3 = RotationMatrix[{v1, {0, 0, 0, 1}}][[{1,2,3}]]//Simplify; *)
 vTop3d = projection4to3.vTop;
-rotation3d = RotationMatrix[{vTop3d, {0, 0, 1}}];
+(* rotation3d = RotationMatrix[{vTop3d, {0, 0, 1}}]; *)
+rotation3d = IdentityMatrix[3];
 
 projectionMatrix = rotation3d.projection4to3.projection8to4//N;
 
@@ -350,20 +360,22 @@ faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 (* viewPoint = {-phi, -1, 0}; *)
 (* viewPoint = {phi, -1, 0}; *)
 (* viewPoint = {0, 0, 10}; *)
-(* viewPoint = {1.01, -0.99, 0.5} * 10; *)
-viewPoint = {1.0, -1, 0.5} * 10;
+(* viewPoint = {1.0, -1, 0.5} * 10; *)
+viewPoint = {1.01, -0.99, 0.5} * 10;
 
 range = 6;
-thickness = 0.08;
+thickness = 0.06;
 lighting = {{"Point", White, {10, -10, 10}}};
 
 graphElements = {};
+getScaleFactor[groupIndex_] := (1 + 0.01 * groupIndex / Length[vertexGroups]);
+
 For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
     If[showVertices,
         AppendTo[graphElements, {
             Opacity[1],
             FaceForm[colors[[groupIndex]]],
-            Sphere[vertexGroups3d[[groupIndex]], thickness]
+            Sphere[vertexGroups3d[[groupIndex]] * getScaleFactor[groupIndex], thickness]
         }]
     ];
 
@@ -371,7 +383,7 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
         AppendTo[graphElements, {
             Opacity[1],
             FaceForm[colors[[groupIndex]] ],
-            Cylinder[edgeGroups3d[[groupIndex]], thickness * 0.8 * (1 + groupIndex * 0.01)]
+            Cylinder[edgeGroups3d[[groupIndex]] * getScaleFactor[groupIndex], thickness * 0.8 * getScaleFactor[groupIndex]]
         }]
     ];
 
@@ -379,7 +391,7 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
         AppendTo[graphElements, {
             Opacity[1],
             FaceForm[colors[[groupIndex]] ],
-            Map[Polygon, faceGroups3d[[groupIndex]]]
+            Map[Polygon, faceGroups3d[[groupIndex]] * getScaleFactor[groupIndex]]
         }]
     ];
 ];

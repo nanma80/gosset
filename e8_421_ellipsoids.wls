@@ -209,9 +209,9 @@ getRow[v4_] := {v4[[1]] v4[[1]], v4[[2]] v4[[2]], v4[[3]] v4[[3]], v4[[4]] v4[[4
 
 groupIndex = 3;
 quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
-Print[MatrixRank[quadMatrix]];
+(* Print[MatrixRank[quadMatrix]]; *)
 
-matrixRanks = Table[
+(* matrixRanks = Table[
     MatrixRank[
         Map[getRow, vertexGroups4d[[k]]]
     ],
@@ -219,6 +219,7 @@ matrixRanks = Table[
 ];
 
 Print[matrixRanks];
+ *)
 
 (* {7, 7, 10, 10, 7, 7, 10, 10, 7, 7} for permIndex=1
 all 10 for 112
@@ -232,14 +233,14 @@ allCoefs = {};
 
 groupIndexLimit = 10;
 For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupIndexLimit, groupIndex++,
-    quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]];
-    coefs = NullSpace[quadMatrix][[1]]//Simplify;
-    coefs = -coefs/coefs[[11]];
+    quadMatrix = Map[getRow, vertexGroups4d[[groupIndex]]]//Simplify;
+    coefs = NullSpace[quadMatrix][[1]];
+    coefs = (-coefs/coefs[[11]])//FullSimplify;
     Print[{groupIndex, coefs}];
     AppendTo[allCoefs, coefs];
-];
+(* ]; *)
 
-For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupIndexLimit, groupIndex++,
+(* For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupIndexLimit, groupIndex++, *)
     coefs = allCoefs[[groupIndex]];
 
     symMatrix = {
@@ -251,8 +252,15 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupI
 
     Print[{groupIndex, Eigenvalues[symMatrix]//N}];
     Print[{groupIndex, Eigenvectors[symMatrix]//N}];
+
+    Print[
+        Table[
+            Round[{vertexGroups4d[[groupIndex]][[k]]}.symMatrix.Transpose[{vertexGroups4d[[groupIndex]][[k]]}], roundPrecision]
+        , {k, 1, Length[vertexGroups4d[[groupIndex]]]}]        
+    ];
 ];
 
+Print[allCoefs];
 (* 
 Before 4D rotation
 {1, {0.327254, 0.327254, 0.0238729, 0.0238729}}
