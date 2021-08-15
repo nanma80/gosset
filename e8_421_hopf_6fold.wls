@@ -8,8 +8,10 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = True;
-topView = False;
+topView = True;
 roundPrecision = 0.000001;
+onlyOneFiber = True;
+fiberIndex = 10;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -199,7 +201,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
             }]
         ];
 
-        If[showEdges && groupIndex <= 10,
+        If[showEdges && groupIndex <= 10 && If[onlyOneFiber, groupIndex == fiberIndex, True],
             AppendTo[graphElements, {
                 Opacity[1],
                 FaceForm[colors[[groupIndex]] ],
@@ -207,7 +209,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
             }]
         ];
 
-        If[showFaces && groupIndex <= 10,
+        If[showFaces && groupIndex <= 10 && If[onlyOneFiber, groupIndex == fiberIndex, True],
             AppendTo[graphElements, {
                 Opacity[1],
                 FaceForm[colors[[groupIndex]] ],
@@ -249,8 +251,11 @@ exportAnimation[] := Module[
     },
 
     shape = "e8_421";
-    frameFolder = shape <> If[showFaces, "_with_faces", ""] <> If[topView, "_topview", ""] <> "_hopf_6fold_frames";
-    gifFileName = shape <> If[showFaces, "_with_faces", ""] <> If[topView, "_topview", ""] <> "_hopf_6fold";
+    gifFileName = shape <> If[showFaces, "_with_faces", ""] 
+        <> If[topView, "_topview", ""] 
+        <> If[onlyOneFiber, "_fiber_" <> IntegerString[fiberIndex], ""] 
+        <> "_hopf_6fold";
+    frameFolder = gifFileName <> "_frames";
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
