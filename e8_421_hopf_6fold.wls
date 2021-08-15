@@ -6,7 +6,7 @@ imageFolder = "output";
 imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
-showEdges = False;
+showEdges = True;
 showFaces = True;
 topView = False;
 roundPrecision = 0.000001;
@@ -20,6 +20,8 @@ reflect[point_, mirror_] := point - 2 * (point.mirror)/(mirror.mirror)*mirror;
 cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
 sameVertex[point1_, point2_] := point1 == point2;
 sameCenter[edge1_, edge2_] := Total[edge1] == Total[edge2];
+dedupEdges[edges_] := Union[edges, SameTest -> sameCenter];
+dedupVertices[vs_] := Union[vs, SameTest -> sameVertex];
 orthoplexVertices[dimension_] := Module[
     {newVertex, i, vertices},
     vertices = {};
@@ -100,7 +102,7 @@ getTriangularFaces[vertices_] := Module[
 
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
-getScaleFactor[groupIndex_] := (1 + 0.01 * groupIndex / Length[vertexGroups]);
+getScaleFactor[groupIndex_] := (1 + 0.01 * groupIndex / 10);
 doubleRotationMatrix[theta_] := ArrayFlatten[{{RotationMatrix[theta], 0}, {0, RotationMatrix[theta]}}];
 
 vertices = get421Vertices[True];
@@ -172,16 +174,15 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     vertexGroups3d = Round[ Map[projectionMatrix.# &, vertexGroups, {2}], roundPrecision];
     edgeGroups3d = Round[ Map[projectionMatrix.# &, edgeGroups, {3}], roundPrecision];
     faceGroups3d = Round[ Map[projectionMatrix.# &, faceGroups, {3}], roundPrecision];
-    (* dedupEdges[edges_] := Union[edges, SameTest -> sameCenter]; *)
-    (* dedupVertices[vs_] := Union[vs, SameTest -> sameVertex]; *)
-    (* vertexGroups3d = Map[dedupVertices, vertexGroups3d]; *)
-    (* edgeGroups3d = Map[dedupEdges, edgeGroups3d]; *)
-    (* Print[Map[Length, vertexGroups3d]]; *)
-    (* Print[Map[Length, edgeGroups3d]]; *)
-    (* Print[Map[Length, faceGroups3d]]; *)
-
-
+    vertexGroups3d = Map[dedupVertices, vertexGroups3d];
+    edgeGroups3d = Map[dedupEdges, edgeGroups3d];
+    faceGroups3d = Map[dedupEdges, faceGroups3d];
+(*     Print[Map[Length, vertexGroups3d]];
+    Print[Map[Length, edgeGroups3d]];
+    Print[Map[Length, faceGroups3d]];
+ *)
     viewPoint = If[topView, {0, 0, 10}, {1, -1, 0.5}] * 10;
+    viewPoint = viewPoint/Norm[viewPoint] * 20;
 
     range = 5.5;
     thickness = 0.1;
@@ -217,7 +218,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
     graph = Graphics3D[
             graphElements,
-            ViewPoint -> viewPoint * 3000,
+            ViewPoint -> viewPoint,
             PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
             Lighting -> lighting
         ];
@@ -285,11 +286,11 @@ exportAnimation[] := Module[
 
 
 
-exportImage[0.01, 1, "test"];
+(* exportImage[0, 1, "test"]; *)
 (* exportImage[5 Pi/180, 2, "test"];
 exportImage[10 Pi/180, 3, "test"];
 exportImage[15 Pi/180, 4, "test"];
 exportImage[20 Pi/180, 5, "test"];
  *)
 (* 60 degree as same as 0 *)
-(* exportAnimation[]; *)
+exportAnimation[];
