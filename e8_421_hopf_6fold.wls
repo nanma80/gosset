@@ -6,7 +6,7 @@ imageFolder = "output";
 imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
-showEdges = True;
+showEdges = False;
 showFaces = True;
 topView = False;
 roundPrecision = 0.000001;
@@ -18,7 +18,8 @@ ConfigurePOVRayRender["POVRayPath" -> "C:\\Program Files\\POV-Ray\\v3.7\\bin\\pv
 colors = {Red, Blue, Green, Yellow, Magenta, Cyan, Brown, Orange, Pink, Gray};
 reflect[point_, mirror_] := point - 2 * (point.mirror)/(mirror.mirror)*mirror;
 cubeVertices[dimension_] := 2 * Map[IntegerDigits[#, 2][[2;;dimension+1]]&, Table[k, {k, 2^dimension, 2 * 2^dimension - 1}]] - 1;
-
+sameVertex[point1_, point2_] := point1 == point2;
+sameCenter[edge1_, edge2_] := Total[edge1] == Total[edge2];
 orthoplexVertices[dimension_] := Module[
     {newVertex, i, vertices},
     vertices = {};
@@ -168,14 +169,22 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
     projectionMatrix = projection4to3.projection8to4//N;
 
-    vertexGroups3d = Map[projectionMatrix.# &, vertexGroups, {2}];
-    edgeGroups3d = Map[projectionMatrix.# &, edgeGroups, {3}];
-    faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
+    vertexGroups3d = Round[ Map[projectionMatrix.# &, vertexGroups, {2}], roundPrecision];
+    edgeGroups3d = Round[ Map[projectionMatrix.# &, edgeGroups, {3}], roundPrecision];
+    faceGroups3d = Round[ Map[projectionMatrix.# &, faceGroups, {3}], roundPrecision];
+    (* dedupEdges[edges_] := Union[edges, SameTest -> sameCenter]; *)
+    (* dedupVertices[vs_] := Union[vs, SameTest -> sameVertex]; *)
+    (* vertexGroups3d = Map[dedupVertices, vertexGroups3d]; *)
+    (* edgeGroups3d = Map[dedupEdges, edgeGroups3d]; *)
+    (* Print[Map[Length, vertexGroups3d]]; *)
+    (* Print[Map[Length, edgeGroups3d]]; *)
+    (* Print[Map[Length, faceGroups3d]]; *)
+
 
     viewPoint = If[topView, {0, 0, 10}, {1, -1, 0.5}] * 10;
 
     range = 5.5;
-    thickness = 0.06;
+    thickness = 0.1;
     lighting = {{"Point", White, {10, -10, 10}}};
 
     graphElements = {};
@@ -276,11 +285,11 @@ exportAnimation[] := Module[
 
 
 
-(* exportImage[0, 1, "test"]; *)
+exportImage[0.01, 1, "test"];
 (* exportImage[5 Pi/180, 2, "test"];
 exportImage[10 Pi/180, 3, "test"];
 exportImage[15 Pi/180, 4, "test"];
 exportImage[20 Pi/180, 5, "test"];
  *)
 (* 60 degree as same as 0 *)
-exportAnimation[];
+(* exportAnimation[]; *)
