@@ -8,7 +8,7 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = True;
-topView = True;
+topView = False;
 roundPrecision = 0.000001;
 
 Needs["Quaternions`"];
