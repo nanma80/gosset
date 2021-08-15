@@ -8,6 +8,7 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = True;
+topView = True;
 roundPrecision = 0.000001;
 
 Needs["Quaternions`"];
@@ -171,9 +172,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     edgeGroups3d = Map[projectionMatrix.# &, edgeGroups, {3}];
     faceGroups3d = Map[projectionMatrix.# &, faceGroups, {3}];
 
-    (* viewPoint = {0, 0, 10}; *)
-    viewPoint = {1, -1, 0.5} * 10;
-    (* viewPoint = {1.01, -0.99, 0.5} * 10; *)
+    viewPoint = If[topView, {0, 0, 10}, {1, -1, 0.5}] * 10;
 
     range = 5.5;
     thickness = 0.06;
@@ -240,19 +239,19 @@ exportAnimation[] := Module[
     },
 
     shape = "e8_421";
-    frameFolder = shape <> If[showFaces, "_with_faces", ""] <> "_hopf_6fold";
-    gifFileName = shape <> If[showFaces, "_with_faces", ""] <> "_hopf_6fold";
+    frameFolder = shape <> If[showFaces, "_with_faces", ""] <> If[topView, "_topview", ""] <> "_hopf_6fold_frames";
+    gifFileName = shape <> If[showFaces, "_with_faces", ""] <> If[topView, "_topview", ""] <> "_hopf_6fold";
     gifFolder = FileNameJoin[{imageFolder, shape}];
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
     If[!DirectoryQ[gifFolder], CreateDirectory[gifFolder]];
 
     frameIndex = 1;
-    angleStep = 1;
+    angleStep = 0.5;
     For[angle = 0, angle <= 60 - angleStep, angle += angleStep,
         Print["Frame #" <> IntegerString[frameIndex] <> " angle: " <> TextString[angle]];
         (* If[Mod[angle, 1] == 0, *)
-            exportImage[angle / 180 * Pi, frameIndex, frameFolder];
+            exportImage[(angle + 0.01) / 180 * Pi, frameIndex, frameFolder];
         (* ]; *)
         frameIndex ++;
     ];
