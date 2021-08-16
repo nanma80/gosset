@@ -179,7 +179,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     faceGroups3d = Round[ Map[projectionMatrix.# &, faceGroups, {3}], roundPrecision];
     vertexGroups3d = Map[dedupVertices, vertexGroups3d];
     edgeGroups3d = Map[dedupEdges, edgeGroups3d];
-    faceGroups3d = Map[dedupEdges, faceGroups3d];
+    (* faceGroups3d = Map[dedupEdges, faceGroups3d]; *)
 (*     Print[Map[Length, vertexGroups3d]];
     Print[Map[Length, edgeGroups3d]];
     Print[Map[Length, faceGroups3d]];
@@ -269,7 +269,7 @@ exportAnimation[] := Module[
     For[angle = 0, angle <= 60 - angleStep, angle += angleStep,
         Print["Frame #" <> IntegerString[frameIndex] <> " angle: " <> TextString[angle]];
         (* If[Mod[angle, 1] == 0, *)
-            exportImage[(angle + 0.01) / 180 * Pi, frameIndex, frameFolder];
+            exportImage[(angle + angleStep/2) / 180 * Pi, frameIndex, frameFolder];
         (* ]; *)
         frameIndex ++;
     ];
@@ -294,7 +294,9 @@ exportAnimation[] := Module[
 
 
 
-(* exportImage[0, 1, "test"]; *)
+(* exportImage[(0.25 + 0.01)/180*Pi, 201, "test"]; *)
+(* exportImage[(0.5 + 0.25 + 0.01)/180*Pi, 202, "test"]; *)
+(* exportImage[(0.5 + 0.01)/180*Pi, 2, "test"]; *)
 (* exportImage[5 Pi/180, 2, "test"];
 exportImage[10 Pi/180, 3, "test"];
 exportImage[15 Pi/180, 4, "test"];
