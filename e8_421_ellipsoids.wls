@@ -100,6 +100,17 @@ getTriangularFaces[vertices_] := Module[
 
 projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
+projectEllipsoid[originalEllipsoid_, removeDims_] := Module[
+    {},
+    keepDims = Complement[Range[Length[originalEllipsoid]], removeDims];
+    keepKeep = Map[#[[keepDims]]&, originalEllipsoid[[keepDims]]];
+    keepRemove = Map[#[[removeDims]]&, originalEllipsoid[[keepDims]]];
+    removeKeep = Map[#[[keepDims]]&, originalEllipsoid[[removeDims]]];
+    removeRemove = Map[#[[removeDims]]&, originalEllipsoid[[removeDims]]];
+
+    projectedEllipsoid = keepKeep - keepRemove.Inverse[removeRemove].removeKeep;
+    projectedEllipsoid
+];
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
@@ -258,6 +269,13 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupI
             Round[{vertexGroups4d[[groupIndex]][[k]]}.symMatrix.Transpose[{vertexGroups4d[[groupIndex]][[k]]}], roundPrecision]
         , {k, 1, Length[vertexGroups4d[[groupIndex]]]}]        
     ];
+
+    removeDims = {4};
+    Print[projectEllipsoid[symMatrix, removeDims]//N];
+
+(* for index == 6:
+{{0.04750508163672235, 0.022440331367048295, -0.033452070916227185}, {0.022440331367048295, 0.07341694434766183, -0.05794068644530265}, {-0.033452070916227185, -0.05794068644530265, 0.08637287570313157}} 
+*)
 ];
 
 Print[allCoefs];
