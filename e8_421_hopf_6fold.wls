@@ -8,10 +8,11 @@ exportToPov = True;
 showVertices = True;
 showEdges = True;
 showFaces = True;
-topView = True;
+transparentFaces = True;
+topView = False;
 roundPrecision = 0.000001;
-onlyOneFiber = True;
-fiberIndex = 10;
+onlyOneFiber = False;
+fiberIndex = 6;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -211,7 +212,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
 
         If[showFaces && groupIndex <= 10 && If[onlyOneFiber, groupIndex == fiberIndex, True],
             AppendTo[graphElements, {
-                Opacity[1],
+                Opacity[If[transparentFaces, 0.5, 1]],
                 FaceForm[colors[[groupIndex]] ],
                 Map[Polygon, faceGroups3d[[groupIndex]] * getScaleFactor[groupIndex]]
             }]
@@ -251,7 +252,9 @@ exportAnimation[] := Module[
     },
 
     shape = "e8_421";
-    gifFileName = shape <> If[showFaces, "_with_faces", ""] 
+    gifFileName = shape 
+        <> If[showFaces, "_with_faces", ""] 
+        <> If[transparentFaces, "_transparent_faces", ""] 
         <> If[topView, "_topview", ""] 
         <> If[onlyOneFiber, "_fiber_" <> IntegerString[fiberIndex], ""] 
         <> "_hopf_6fold";
