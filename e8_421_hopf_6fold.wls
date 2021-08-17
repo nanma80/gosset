@@ -6,15 +6,15 @@ imageFolder = "output";
 imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
-showEdges = False;
+showEdges = True;
 showFaces = False;
 transparentFaces = False;
 topView = False;
 roundPrecision = 0.000001;
-onlyOneFiber = True;
+onlyOneFiber = False;
 fiberIndex = 6;
 plotPoints = 30;
-maxRecursion = 0;
+maxRecursion = 1;
 showEllipsoids = True;
 
 Needs["Quaternions`"];
@@ -205,8 +205,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     viewPoint = viewPoint/Norm[viewPoint] * 20;
 
     range = If[showEllipsoids, 7.4, 5.5];
-
-    thickness = range/55.0;
+    thickness = If[showEllipsoids, 0.16, 0.1];
     lighting = {{"Point", White, {10, -10, 10}}};
 
     graphElements = {};
