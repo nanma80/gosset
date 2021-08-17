@@ -7,7 +7,7 @@ imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
 showEdges = True;
-showFaces = False;
+showFaces = True;
 transparentFaces = False;
 topView = False;
 roundPrecision = 0.000001;
@@ -15,7 +15,7 @@ onlyOneFiber = False;
 fiberIndex = 6;
 plotPoints = 30;
 maxRecursion = 1;
-showEllipsoids = True;
+showEllipsoids = False;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -204,7 +204,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     viewPoint = If[topView, {0, 0, 10}, {1, -1, 0.5}] * 10;
     viewPoint = viewPoint/Norm[viewPoint] * 20;
 
-    range = If[showEllipsoids, 7.4, 5.5];
+    range = If[showEllipsoids, 7.4, 5.2];
     thickness = If[showEllipsoids, 0.16, 0.1];
     lighting = {{"Point", White, {10, -10, 10}}};
 
