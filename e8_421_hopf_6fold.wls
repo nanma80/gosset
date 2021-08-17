@@ -6,13 +6,16 @@ imageFolder = "output";
 imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
-showEdges = True;
-showFaces = True;
-transparentFaces = True;
+showEdges = False;
+showFaces = False;
+transparentFaces = False;
 topView = False;
 roundPrecision = 0.000001;
-onlyOneFiber = False;
+onlyOneFiber = True;
 fiberIndex = 6;
+plotPoints = 30;
+maxRecursion = 0;
+showEllipsoids = True;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -107,6 +110,17 @@ projectToDirection[vertex_, projectionMatrix_] := projectionMatrix.vertex;
 getAngle[u_, v_] := Round[ArcCos[u.v/Norm[u]/Norm[v]]/Pi*180., roundPrecision];
 getScaleFactor[groupIndex_] := (1 + 0.01 * groupIndex / 10);
 doubleRotationMatrix[theta_] := ArrayFlatten[{{RotationMatrix[theta], 0}, {0, RotationMatrix[theta]}}];
+projectEllipsoid[originalEllipsoid_, removeDims_] := Module[
+    {},
+    keepDims = Complement[Range[Length[originalEllipsoid]], removeDims];
+    keepKeep = Map[#[[keepDims]]&, originalEllipsoid[[keepDims]]];
+    keepRemove = Map[#[[removeDims]]&, originalEllipsoid[[keepDims]]];
+    removeKeep = Map[#[[keepDims]]&, originalEllipsoid[[removeDims]]];
+    removeRemove = Map[#[[removeDims]]&, originalEllipsoid[[removeDims]]];
+
+    projectedEllipsoid = keepKeep - keepRemove.Inverse[removeRemove].removeKeep;
+    projectedEllipsoid
+];
 
 vertices = get421Vertices[True];
 vertices24Cell = get24CellVertices[];
@@ -152,6 +166,9 @@ permutations = Permutations[Range[8]];
 permIndex = 112;
 projection8to4Permed = Transpose[Transpose[projection8to4Original][[permutations[[permIndex]]]]];
 projection4to3 = IdentityMatrix[4][[{1,2,3}]];
+ellipsoidMatrices = Get["data/perm112_ellipsoidMatrices.wl"];
+removeDims = {4};
+ellipsoidMatrices3d = Map[projectEllipsoid[#, removeDims]&, ellipsoidMatrices]//N;
 
 exportImage[theta_, serialNumber_, frameFolder_] := Module[
     {
@@ -187,8 +204,9 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     viewPoint = If[topView, {0, 0, 10}, {1, -1, 0.5}] * 10;
     viewPoint = viewPoint/Norm[viewPoint] * 20;
 
-    range = 5.5;
-    thickness = 0.1;
+    range = If[showEllipsoids, 7.4, 5.5];
+
+    thickness = range/55.0;
     lighting = {{"Point", White, {10, -10, 10}}};
 
     graphElements = {};
@@ -219,12 +237,27 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
         ];
     ];
 
-    graph = Graphics3D[
+    graph1 = Graphics3D[
             graphElements,
             ViewPoint -> viewPoint,
             PlotRange -> {{-range, range}, {-range, range}, {-range, range}},
             Lighting -> lighting
         ];
+
+
+    If[showEllipsoids,
+        contourPlots = Table[ContourPlot3D[
+                {{x,y,z}}.ellipsoidMatrices3d[[groupIndex]].Transpose[{{x,y,z}}] == 1, 
+                {x, -range, range}, {y, -range, range}, {z, -range, range},
+                PlotPoints -> plotPoints, 
+                MaxRecursion -> maxRecursion,
+                MeshFunctions -> {0 &}, 
+                MeshShading -> {{ colors[[groupIndex]] , Opacity[0.5] }}
+            ], {groupIndex, 1, Length[ellipsoidMatrices3d]}];
+        graph = Apply[Show, Join[contourPlots, {graph1}]],
+        graph = graph1
+    ];
+
 
     outputFolder = FileNameJoin[{imageFolder, frameFolder}];
     If[!DirectoryQ[outputFolder], CreateDirectory[outputFolder]];
@@ -253,6 +286,7 @@ exportAnimation[] := Module[
 
     shape = "e8_421";
     gifFileName = shape 
+        <> If[showEllipsoids, "_with_ellipsoids", ""] 
         <> If[showFaces, "_with_faces", ""] 
         <> If[transparentFaces, "_transparent_faces", ""] 
         <> If[topView, "_topview", ""] 

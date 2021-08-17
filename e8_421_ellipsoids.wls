@@ -239,6 +239,7 @@ all 10 for 112
 ellipsoidEquation[v4_, coefs_] := coefs[[1]] v4[[1]] v4[[1]] + coefs[[2]] v4[[2]] v4[[2]] + coefs[[3]] v4[[3]] v4[[3]] + coefs[[4]] v4[[4]] v4[[4]] + coefs[[5]] v4[[1]] v4[[2]] + coefs[[6]] v4[[1]] v4[[3]] + coefs[[7]] v4[[1]] v4[[4]] + coefs[[8]] v4[[2]] v4[[3]] + coefs[[9]] v4[[2]] v4[[4]] + coefs[[10]] v4[[3]] v4[[4]] + coefs[[11]];
 
 allCoefs = {};
+ellipsoidMatrices = {};
 
 (* LinearSolve[quadMatrix, Table[0, {k, 24}]] *)
 
@@ -263,6 +264,7 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupI
 
     Print[{groupIndex, Eigenvalues[symMatrix]//N}];
     Print[{groupIndex, Eigenvectors[symMatrix]//N}];
+    AppendTo[ellipsoidMatrices, symMatrix];
 
     Print[
         Table[
@@ -278,7 +280,9 @@ For[groupIndex = 1, groupIndex <= Length[vertexGroups4d] && groupIndex <= groupI
 *)
 ];
 
-Print[allCoefs];
+(* Print[allCoefs]; *)
+Save["data/perm112_ellipsoidMatrices.wl", ellipsoidMatrices];
+
 (* 
 Before 4D rotation
 {1, {0.327254, 0.327254, 0.0238729, 0.0238729}}
