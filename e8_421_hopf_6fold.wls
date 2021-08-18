@@ -7,15 +7,15 @@ imageSize = 240 * {4, 3};
 exportToPov = True;
 showVertices = True;
 showEdges = True;
-showFaces = True;
+showFaces = False;
 transparentFaces = False;
 topView = False;
 roundPrecision = 0.000001;
-onlyOneFiber = False;
+onlyOneFiber = True;
 fiberIndex = 6;
 plotPoints = 30;
 maxRecursion = 1;
-showEllipsoids = False;
+showEllipsoids = True;
 
 Needs["Quaternions`"];
 Needs["POVRayRender`"];
@@ -211,7 +211,7 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
     graphElements = {};
 
     For[groupIndex = 1, groupIndex <= Length[vertexGroups], groupIndex++,
-        If[showVertices,
+        If[showVertices && groupIndex <= 10 && If[onlyOneFiber, groupIndex == fiberIndex, True],
             AppendTo[graphElements, {
                 Opacity[1],
                 FaceForm[colors[[groupIndex]]],
@@ -253,6 +253,9 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
                 MeshFunctions -> {0 &}, 
                 MeshShading -> {{ colors[[groupIndex]] , Opacity[0.5] }}
             ], {groupIndex, 1, Length[ellipsoidMatrices3d]}];
+        If[onlyOneFiber,
+            contourPlots = contourPlots[[{fiberIndex}]];
+        ];
         graph = Apply[Show, Join[contourPlots, {graph1}]],
         graph = graph1
     ];
