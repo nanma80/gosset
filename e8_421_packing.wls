@@ -17,8 +17,8 @@ plotPoints = 30;
 maxRecursion = 1;
 showEllipsoids = False;
 
-(* angleStep = 0.5; *)
-angleStep = 10;
+angleStep = 0.5;
+(* angleStep = 10; *)
 opacity = If[transparentFaces, 0.5, 1];
 
 epsilon = roundPrecision;
@@ -186,6 +186,11 @@ exportImage[theta_, serialNumber_, frameFolder_] := Module[
         groupIndex
     },
 
+    Return[];
+    (* If[serialNumber <= 248, Return[]]; *)
+    (* If[EvenQ[serialNumber] == True, Return[]]; *)
+    (* If[EvenQ[serialNumber] == False, Return[]]; *)
+
     rotation4d = doubleRotationMatrix[theta].{
         {1, 0, 0, 0},
         {0, phi, 1/phi, 0}/Sqrt[3],
@@ -306,7 +311,7 @@ exportAnimation[] := Module[
         frameIndex, gifCommand, delay
     },
 
-    shape = "e8_421_packing_";
+    shape = "e8_421_packing";
     gifFileName = shape 
         <> If[showEllipsoids, "_with_ellipsoids", ""] 
         <> If[showFaces, "_with_faces", ""] 
